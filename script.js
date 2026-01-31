@@ -124,29 +124,79 @@
     });
   }
 
-  // --- Termine filter ---
+  // --- Termine filter with sliding pill ---
   const filterBtns = document.querySelectorAll('.filter-btn');
   const timelineItems = document.querySelectorAll('.timeline-item[data-category]');
+  const filterBar = document.querySelector('.filter-bar');
+
+  // Create sliding pill element
+  var filterPill = document.createElement('div');
+  filterPill.className = 'filter-pill';
+  if (filterBar) {
+    filterBar.insertBefore(filterPill, filterBar.firstChild);
+  }
+
+  // Position pill over active button
+  function updatePill(targetBtn, animate) {
+    if (!targetBtn || !filterPill || !filterBar) return;
+    var barRect = filterBar.getBoundingClientRect();
+    var btnRect = targetBtn.getBoundingClientRect();
+    var offsetX = btnRect.left - barRect.left - 4.8; // account for bar padding
+    filterPill.style.width = btnRect.width + 'px';
+    filterPill.style.transform = 'translateX(' + offsetX + 'px)';
+    if (!animate) {
+      filterPill.style.transition = 'none';
+      // Force reflow then restore transition
+      filterPill.offsetHeight;
+      filterPill.style.transition = '';
+    }
+  }
+
+  // Initialize pill position
+  var initialActive = filterBar ? filterBar.querySelector('.filter-btn.active') : null;
+  if (initialActive) {
+    updatePill(initialActive, false);
+  }
+
+  // Reposition on resize
+  window.addEventListener('resize', function () {
+    var activeBtn = filterBar ? filterBar.querySelector('.filter-btn.active') : null;
+    if (activeBtn) updatePill(activeBtn, false);
+  });
 
   filterBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
-      const filter = this.getAttribute('data-filter');
+      var filter = this.getAttribute('data-filter');
 
       // Update active button
       filterBtns.forEach(function (b) { b.classList.remove('active'); });
       this.classList.add('active');
 
-      // Filter items
+      // Slide pill to new position
+      updatePill(this, true);
+
+      // Filter items with staggered animation
+      var showDelay = 0;
       timelineItems.forEach(function (item) {
-        if (filter === 'all' || item.getAttribute('data-category') === filter) {
+        var matches = filter === 'all' || item.getAttribute('data-category') === filter;
+        if (matches) {
+          // Show item with stagger
           item.classList.remove('hidden');
-          // Re-trigger animation
-          item.classList.remove('visible');
-          requestAnimationFrame(function () {
-            item.classList.add('visible');
+          item.classList.add('filter-entering');
+          item.style.animationDelay = showDelay + 'ms';
+          showDelay += 60;
+          // Clean up animation class after it finishes
+          item.addEventListener('animationend', function handler() {
+            item.classList.remove('filter-entering');
+            item.style.animationDelay = '';
+            item.removeEventListener('animationend', handler);
           });
+          // Ensure visible class is set
+          item.classList.add('visible');
         } else {
           item.classList.add('hidden');
+          item.classList.remove('filter-entering');
+          item.style.animationDelay = '';
         }
       });
     });

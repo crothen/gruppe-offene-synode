@@ -494,7 +494,7 @@ a:hover {
 
 /* Filter Bar */
 .filter-bar {
-  display: inline-flex;
+  display: flex;
   gap: 0;
   margin-bottom: 2.5rem;
   justify-content: center;
@@ -502,11 +502,23 @@ a:hover {
   border-radius: 50px;
   padding: 0.3rem;
   position: relative;
-  /* center the bar */
-  display: flex;
   width: fit-content;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* Sliding pill indicator */
+.filter-pill {
+  position: absolute;
+  top: 0.3rem;
+  left: 0.3rem;
+  height: calc(100% - 0.6rem);
+  border-radius: 50px;
+  background: var(--color-white);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.15, 1), width 0.35s cubic-bezier(0.4, 0, 0.15, 1);
+  z-index: 0;
+  pointer-events: none;
 }
 
 .filter-btn {
@@ -519,7 +531,7 @@ a:hover {
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: color 0.3s cubic-bezier(0.4, 0, 0.15, 1);
   position: relative;
   z-index: 1;
 }
@@ -529,9 +541,7 @@ a:hover {
 }
 
 .filter-btn.active {
-  background: var(--color-white);
   color: var(--color-forest);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
 }
 
 .filter-btn[data-filter="synode"].active {
@@ -551,17 +561,39 @@ a:hover {
   border-radius: 50%;
   margin-right: 0.4rem;
   vertical-align: middle;
+  transition: opacity 0.2s ease;
 }
 
+.filter-btn::before {
+  content: '';
+  display: inline-block;
+  width: 0;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 0;
+  vertical-align: middle;
+  transition: width 0.2s ease, margin 0.2s ease, opacity 0.2s ease;
+  opacity: 0;
+}
+
+.filter-btn.active::before {
+  opacity: 1;
+}
+
+.filter-btn[data-filter="all"]::before,
 .filter-btn[data-filter="all"].active::before {
   display: none;
 }
 
 .filter-btn[data-filter="synode"].active::before {
+  width: 6px;
+  margin-right: 0.4rem;
   background: var(--color-olive);
 }
 
 .filter-btn[data-filter="gos"].active::before {
+  width: 6px;
+  margin-right: 0.4rem;
   background: var(--color-forest);
 }
 
@@ -584,16 +616,34 @@ a:hover {
 
 /* Filter animation */
 .timeline-item {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.15, 1),
+              transform 0.4s cubic-bezier(0.4, 0, 0.15, 1),
+              max-height 0.45s cubic-bezier(0.4, 0, 0.15, 1),
+              margin-bottom 0.45s cubic-bezier(0.4, 0, 0.15, 1);
+  max-height: 300px; /* generous max for open state */
+  overflow: hidden;
 }
 
 .timeline-item.hidden {
   opacity: 0;
-  transform: translateY(-10px);
-  height: 0;
-  overflow: hidden;
-  margin: 0;
-  padding: 0;
+  transform: translateX(-20px) scale(0.97);
+  max-height: 0;
+  margin-bottom: 0;
+}
+
+.timeline-item.filter-entering {
+  animation: filterSlideIn 0.4s cubic-bezier(0.4, 0, 0.15, 1) forwards;
+}
+
+@keyframes filterSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
 }
 
 .timeline-body h3 {
