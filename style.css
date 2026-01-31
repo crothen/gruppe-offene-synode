@@ -511,7 +511,7 @@ a:hover {
 .filter-pill {
   position: absolute;
   top: 0.3rem;
-  left: 0.3rem;
+  left: 0;
   height: calc(100% - 0.6rem);
   border-radius: 50px;
   background: var(--color-white);
@@ -552,50 +552,7 @@ a:hover {
   color: var(--color-forest);
 }
 
-/* Small colored indicator dot on active filter */
-.filter-btn.active::before {
-  content: '';
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  margin-right: 0.4rem;
-  vertical-align: middle;
-  transition: opacity 0.2s ease;
-}
-
-.filter-btn::before {
-  content: '';
-  display: inline-block;
-  width: 0;
-  height: 6px;
-  border-radius: 50%;
-  margin-right: 0;
-  vertical-align: middle;
-  transition: width 0.2s ease, margin 0.2s ease, opacity 0.2s ease;
-  opacity: 0;
-}
-
-.filter-btn.active::before {
-  opacity: 1;
-}
-
-.filter-btn[data-filter="all"]::before,
-.filter-btn[data-filter="all"].active::before {
-  display: none;
-}
-
-.filter-btn[data-filter="synode"].active::before {
-  width: 6px;
-  margin-right: 0.4rem;
-  background: var(--color-olive);
-}
-
-.filter-btn[data-filter="gos"].active::before {
-  width: 6px;
-  margin-right: 0.4rem;
-  background: var(--color-forest);
-}
+/* No dot indicator — pill does the job */
 
 /* Timeline dot variants */
 .dot-synode {

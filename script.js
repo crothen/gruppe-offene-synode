@@ -139,15 +139,11 @@
   // Position pill over active button
   function updatePill(targetBtn, animate) {
     if (!targetBtn || !filterPill || !filterBar) return;
-    var barRect = filterBar.getBoundingClientRect();
-    var btnRect = targetBtn.getBoundingClientRect();
-    var offsetX = btnRect.left - barRect.left - 4.8; // account for bar padding
-    filterPill.style.width = btnRect.width + 'px';
-    filterPill.style.transform = 'translateX(' + offsetX + 'px)';
+    filterPill.style.width = targetBtn.offsetWidth + 'px';
+    filterPill.style.transform = 'translateX(' + targetBtn.offsetLeft + 'px)';
     if (!animate) {
       filterPill.style.transition = 'none';
-      // Force reflow then restore transition
-      filterPill.offsetHeight;
+      filterPill.offsetHeight; // force reflow
       filterPill.style.transition = '';
     }
   }
