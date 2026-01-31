@@ -487,6 +487,74 @@ a:hover {
   color: var(--color-earth);
 }
 
+.badge-gos {
+  background: rgba(45, 80, 22, 0.15);
+  color: var(--color-primary);
+}
+
+/* Filter Bar */
+.filter-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2.5rem;
+  justify-content: center;
+}
+
+.filter-btn {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 50px;
+  background: var(--color-card);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.filter-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+/* Timeline dot variants */
+.dot-synode {
+  background: var(--color-olive) !important;
+}
+
+.dot-synode::after {
+  border-color: var(--color-olive) !important;
+}
+
+.dot-gos {
+  background: var(--color-primary) !important;
+}
+
+.dot-gos::after {
+  border-color: var(--color-primary) !important;
+}
+
+/* Filter animation */
+.timeline-item {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.timeline-item.hidden {
+  opacity: 0;
+  transform: translateY(-10px);
+  height: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
 .timeline-body h3 {
   font-family: var(--font-serif);
   font-size: 1.1rem;

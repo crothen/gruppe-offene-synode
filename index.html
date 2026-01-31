@@ -24,7 +24,7 @@
       </button>
       <ul class="nav-links" id="navLinks">
         <li><a href="#ueber-uns">Über uns</a></li>
-        <li><a href="#sessionen">Sessionen</a></li>
+        <li><a href="#termine">Termine</a></li>
         <li><a href="#dokumente">Dokumente</a></li>
         <li><a href="#kontakt">Kontakt</a></li>
       </ul>
@@ -113,19 +113,43 @@
     </div>
   </section>
 
-  <!-- Sessionen / Kalender Section -->
-  <section class="section section-sessions" id="sessionen">
+  <!-- Termine Section -->
+  <section class="section section-sessions" id="termine">
     <div class="container">
-      <h2 class="section-title">Sessionen 2026</h2>
+      <h2 class="section-title">Termine 2026</h2>
       <p class="section-subtitle">
-        Die Synode tagt ordentlich im Frühling und Herbst. Dazu kommen 
-        Gesprächssynoden und bei Bedarf ausserordentliche Sessionen.
+        Übersicht der Synodetermine und GOS-internen Anlässe.
       </p>
+      <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all">Alle</button>
+        <button class="filter-btn" data-filter="synode">Synode</button>
+        <button class="filter-btn" data-filter="gos">GOS</button>
+      </div>
       <div class="timeline">
-        <!-- Session 1 -->
-        <div class="timeline-item">
+        <!-- GOS 1 -->
+        <div class="timeline-item" data-category="gos">
           <div class="timeline-marker">
-            <div class="timeline-dot"></div>
+            <div class="timeline-dot dot-gos"></div>
+          </div>
+          <div class="timeline-card">
+            <div class="timeline-date">
+              <span class="date-day">14.</span>
+              <span class="date-month">März 2026</span>
+            </div>
+            <div class="timeline-body">
+              <span class="session-badge badge-gos">GOS</span>
+              <h3>Fraktionssitzung</h3>
+              <p>
+                Interne Sitzung der Gruppe Offene Synode. Vorbereitung der Frühlingssession 
+                und Besprechung aktueller Traktanden.
+              </p>
+            </div>
+          </div>
+        </div>
+        <!-- Synode 1 -->
+        <div class="timeline-item" data-category="synode">
+          <div class="timeline-marker">
+            <div class="timeline-dot dot-synode"></div>
           </div>
           <div class="timeline-card">
             <div class="timeline-date">
@@ -133,7 +157,7 @@
               <span class="date-month">Juni 2026</span>
             </div>
             <div class="timeline-body">
-              <span class="session-badge badge-spring">Frühlingssession</span>
+              <span class="session-badge badge-spring">Synode</span>
               <h3>Ordentliche Frühlingssession</h3>
               <p>
                 Zweitägige ordentliche Session der Synode der Reformierten Kirchen 
@@ -142,10 +166,30 @@
             </div>
           </div>
         </div>
-        <!-- Session 2 -->
-        <div class="timeline-item">
+        <!-- GOS 2 -->
+        <div class="timeline-item" data-category="gos">
           <div class="timeline-marker">
-            <div class="timeline-dot"></div>
+            <div class="timeline-dot dot-gos"></div>
+          </div>
+          <div class="timeline-card">
+            <div class="timeline-date">
+              <span class="date-day">22.</span>
+              <span class="date-month">August 2026</span>
+            </div>
+            <div class="timeline-body">
+              <span class="session-badge badge-gos">GOS</span>
+              <h3>Fraktionssitzung</h3>
+              <p>
+                Vorbereitung der Gesprächssynode und der Herbstsession. 
+                Thematische Schwerpunkte und Positionierung.
+              </p>
+            </div>
+          </div>
+        </div>
+        <!-- Synode 2 -->
+        <div class="timeline-item" data-category="synode">
+          <div class="timeline-marker">
+            <div class="timeline-dot dot-synode"></div>
           </div>
           <div class="timeline-card">
             <div class="timeline-date">
@@ -153,7 +197,7 @@
               <span class="date-month">September 2026</span>
             </div>
             <div class="timeline-body">
-              <span class="session-badge badge-dialogue">Gesprächssynode</span>
+              <span class="session-badge badge-dialogue">Synode</span>
               <h3>Gesprächssynode</h3>
               <p>
                 Die Gesprächssynode bietet Raum für vertieften Austausch zu aktuellen 
@@ -162,10 +206,10 @@
             </div>
           </div>
         </div>
-        <!-- Session 3 -->
-        <div class="timeline-item">
+        <!-- Synode 3 -->
+        <div class="timeline-item" data-category="synode">
           <div class="timeline-marker">
-            <div class="timeline-dot"></div>
+            <div class="timeline-dot dot-synode"></div>
           </div>
           <div class="timeline-card">
             <div class="timeline-date">
@@ -173,11 +217,31 @@
               <span class="date-month">November 2026</span>
             </div>
             <div class="timeline-body">
-              <span class="session-badge badge-autumn">Herbstsession</span>
+              <span class="session-badge badge-autumn">Synode</span>
               <h3>Ordentliche Herbstsession</h3>
               <p>
                 Zweitägige ordentliche Herbstsession mit Budget-Beratungen und 
                 weiteren Geschäften der Synode.
+              </p>
+            </div>
+          </div>
+        </div>
+        <!-- GOS 3 -->
+        <div class="timeline-item" data-category="gos">
+          <div class="timeline-marker">
+            <div class="timeline-dot dot-gos"></div>
+          </div>
+          <div class="timeline-card">
+            <div class="timeline-date">
+              <span class="date-day">5.</span>
+              <span class="date-month">Dezember 2026</span>
+            </div>
+            <div class="timeline-body">
+              <span class="session-badge badge-gos">GOS</span>
+              <h3>Jahresrückblick & Planung</h3>
+              <p>
+                Rückblick auf das vergangene Jahr und gemeinsame Planung 
+                der Schwerpunkte für 2027.
               </p>
             </div>
           </div>

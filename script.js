@@ -124,6 +124,34 @@
     });
   }
 
+  // --- Termine filter ---
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const timelineItems = document.querySelectorAll('.timeline-item[data-category]');
+
+  filterBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const filter = this.getAttribute('data-filter');
+
+      // Update active button
+      filterBtns.forEach(function (b) { b.classList.remove('active'); });
+      this.classList.add('active');
+
+      // Filter items
+      timelineItems.forEach(function (item) {
+        if (filter === 'all' || item.getAttribute('data-category') === filter) {
+          item.classList.remove('hidden');
+          // Re-trigger animation
+          item.classList.remove('visible');
+          requestAnimationFrame(function () {
+            item.classList.add('visible');
+          });
+        } else {
+          item.classList.add('hidden');
+        }
+      });
+    });
+  });
+
   // --- Smooth scroll for all anchor links (fallback for older browsers) ---
   document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
     anchor.addEventListener('click', function (e) {
