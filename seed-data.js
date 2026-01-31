@@ -41,12 +41,12 @@
     await import('https://www.gstatic.com/firebasejs/11.3.0/firebase-firestore.js');
 
   const firebaseConfig = {
-    apiKey: "AIzaSyBPC7wRQ_W2kkRRwa1Pn96WAMfZVYTOHBk",
-    authDomain: "web-sandbox-crothen.firebaseapp.com",
-    projectId: "web-sandbox-crothen",
-    storageBucket: "web-sandbox-crothen.firebasestorage.app",
-    messagingSenderId: "558960927637",
-    appId: "1:558960927637:web:a0de2969f9b6b04e2b8c9c"
+    apiKey: "AIzaSyAYWg1XqQUrTiArIi0XA-OqaGdHs8_2Msk",
+    authDomain: "gos-offene-synode.firebaseapp.com",
+    projectId: "gos-offene-synode",
+    storageBucket: "gos-offene-synode.firebasestorage.app",
+    messagingSenderId: "806207949880",
+    appId: "1:806207949880:web:ee932435e4ec746e2c2acd"
   };
 
   const app = initializeApp(firebaseConfig, 'seed');

@@ -26,7 +26,7 @@ import {
 import {
   getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject
 } from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-storage.js';
-import { firebaseConfig } from '../../firebase/config.js';
+import { firebaseConfig } from './firebase-config.js';
 
 // --- Firebase Init ---
 const app = initializeApp(firebaseConfig);

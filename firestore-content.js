@@ -9,7 +9,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-app.js';
 import { getFirestore, collection, getDocs, query, where, orderBy }
   from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-firestore.js';
-import { firebaseConfig } from '../../firebase/config.js';
+import { firebaseConfig } from './firebase-config.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
