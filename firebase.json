@@ -4,8 +4,7 @@
     "ignore": [
       "firebase.json",
       ".firebase/**",
-      "seed-data.js",
-      "firebase-config.js"
+      "seed-data.js"
     ],
     "headers": [
       {
