@@ -377,10 +377,10 @@ a:hover {
 .timeline::before {
   content: '';
   position: absolute;
-  left: 11px;
+  left: 4px;
   top: 0;
   bottom: 0;
-  width: 2px;
+  width: 1.5px;
   background: linear-gradient(to bottom, var(--color-sage-light), var(--color-border));
 }
 
@@ -395,25 +395,21 @@ a:hover {
 
 .timeline-marker {
   position: absolute;
-  left: -2.5rem;
-  top: 1.75rem;
+  left: -2.35rem;
+  top: 1.85rem;
 }
 
 .timeline-dot {
-  width: 22px;
-  height: 22px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: var(--color-white);
-  border: 3px solid var(--color-sage);
-  position: relative;
+  background: var(--color-sage-light);
+  border: 2px solid var(--color-cream);
+  box-shadow: 0 0 0 2px var(--color-sage-light);
 }
 
 .timeline-dot::after {
-  content: '';
-  position: absolute;
-  inset: 4px;
-  border-radius: 50%;
-  background: var(--color-sage);
+  display: none;
 }
 
 .timeline-card {
@@ -552,23 +548,15 @@ a:hover {
   color: var(--color-forest);
 }
 
-/* No dot indicator — pill does the job */
-
-/* Timeline dot variants */
+/* Dot color by category — subtle tint only */
 .dot-synode {
-  background: var(--color-olive) !important;
-}
-
-.dot-synode::after {
-  border-color: var(--color-olive) !important;
+  background: var(--color-olive);
+  box-shadow: 0 0 0 2px var(--color-olive);
 }
 
 .dot-gos {
-  background: var(--color-primary) !important;
-}
-
-.dot-gos::after {
-  border-color: var(--color-primary) !important;
+  background: var(--color-forest);
+  box-shadow: 0 0 0 2px var(--color-forest);
 }
 
 /* Filter animation */
@@ -998,12 +986,12 @@ a:hover {
   }
 
   .timeline-marker {
-    left: -2rem;
+    left: -1.85rem;
   }
 
   .timeline-dot {
-    width: 18px;
-    height: 18px;
+    width: 8px;
+    height: 8px;
   }
 }
 
