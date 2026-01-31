@@ -125,6 +125,41 @@ a:hover {
   color: var(--color-sage);
 }
 
+/* Language switcher */
+.lang-switcher {
+  display: flex;
+  gap: 0;
+  background: var(--color-sand);
+  border-radius: 50px;
+  padding: 0.15rem;
+  margin-left: auto;
+  margin-right: 1.5rem;
+}
+
+.lang-btn {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.3rem 0.7rem;
+  border: none;
+  border-radius: 50px;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.25s var(--ease);
+}
+
+.lang-btn:hover {
+  color: var(--color-forest);
+}
+
+.lang-btn.active {
+  background: var(--color-white);
+  color: var(--color-forest);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
 .nav-links {
   display: flex;
   list-style: none;
@@ -890,6 +925,10 @@ a:hover {
 @media (max-width: 768px) {
   :root {
     --section-pad: 4rem;
+  }
+
+  .lang-switcher {
+    margin-right: 1rem;
   }
 
   .nav-toggle {
