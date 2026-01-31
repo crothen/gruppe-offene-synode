@@ -42,6 +42,10 @@ var I18N = (function () {
       'ev2.month':        'Juni 2026',
       'ev2.title':        'Ordentliche Frühlingssession',
       'ev2.text':         'Zweitägige ordentliche Session der Synode der Reformierten Kirchen Bern-Jura-Solothurn. Traktanden werden vorgängig publiziert.',
+      // Event Ausflug
+      'ev_ausflug.month': 'Juni 2026',
+      'ev_ausflug.title': 'Fraktionsausflug',
+      'ev_ausflug.text':  'Gemeinsamer Ausflug nach Adelboden mit Besuch der Kirche Adelboden. Ein Tag für Begegnung und Austausch ausserhalb des Sitzungsraums — im Herzen des Berner Oberlandes.',
       // Event 3
       'ev3.month':        'August 2026',
       'ev3.title':        'Fraktionssitzung',
@@ -132,6 +136,10 @@ var I18N = (function () {
       'ev2.month':        'juin 2026',
       'ev2.title':        'Session ordinaire de printemps',
       'ev2.text':         'Session ordinaire de deux jours du Synode des Églises réformées Berne-Jura-Soleure. Les tractanda sont publiés au préalable.',
+      // Event Ausflug
+      'ev_ausflug.month': 'juin 2026',
+      'ev_ausflug.title': 'Excursion de fraction',
+      'ev_ausflug.text':  'Excursion commune à Adelboden avec visite de l\'église d\'Adelboden. Une journée de rencontre et d\'échange en dehors de la salle de réunion — au cœur de l\'Oberland bernois.',
       // Event 3
       'ev3.month':        'août 2026',
       'ev3.title':        'Réunion de fraction',
