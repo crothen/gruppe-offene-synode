@@ -224,6 +224,15 @@ var I18N = (function () {
     var metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) metaDesc.setAttribute('content', t('meta.desc'));
     document.title = t('meta.title');
+    // Update OG + Twitter meta
+    var ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', t('meta.title'));
+    var ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', t('meta.desc'));
+    var twTitle = document.querySelector('meta[property="twitter:title"]');
+    if (twTitle) twTitle.setAttribute('content', t('meta.title'));
+    var twDesc = document.querySelector('meta[property="twitter:description"]');
+    if (twDesc) twDesc.setAttribute('content', t('meta.desc'));
   }
 
   function updateLangPill(targetBtn) {

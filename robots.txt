@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://gos-offene-synode.web.app/sitemap.xml
+
+# Block admin portal from indexing
+Disallow: /admin.html
