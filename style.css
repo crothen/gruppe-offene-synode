@@ -494,34 +494,75 @@ a:hover {
 
 /* Filter Bar */
 .filter-bar {
-  display: flex;
-  gap: 0.5rem;
+  display: inline-flex;
+  gap: 0;
   margin-bottom: 2.5rem;
   justify-content: center;
+  background: var(--color-sand);
+  border-radius: 50px;
+  padding: 0.3rem;
+  position: relative;
+  /* center the bar */
+  display: flex;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .filter-btn {
   font-family: 'Source Sans 3', sans-serif;
   font-size: 0.85rem;
   font-weight: 600;
-  padding: 0.5rem 1.25rem;
-  border: 1.5px solid var(--color-border);
+  padding: 0.55rem 1.5rem;
+  border: none;
   border-radius: 50px;
-  background: var(--color-card);
+  background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .filter-btn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+  color: var(--color-forest);
 }
 
 .filter-btn.active {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: white;
+  background: var(--color-white);
+  color: var(--color-forest);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.filter-btn[data-filter="synode"].active {
+  color: var(--color-olive);
+}
+
+.filter-btn[data-filter="gos"].active {
+  color: var(--color-forest);
+}
+
+/* Small colored indicator dot on active filter */
+.filter-btn.active::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+}
+
+.filter-btn[data-filter="all"].active::before {
+  display: none;
+}
+
+.filter-btn[data-filter="synode"].active::before {
+  background: var(--color-olive);
+}
+
+.filter-btn[data-filter="gos"].active::before {
+  background: var(--color-forest);
 }
 
 /* Timeline dot variants */
