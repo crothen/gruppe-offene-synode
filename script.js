@@ -5,6 +5,9 @@
 (function () {
   'use strict';
 
+  // Expose namespace for dynamic content integration
+  window.GOS = window.GOS || {};
+
   // --- Navbar scroll effect ---
   const navbar = document.getElementById('navbar');
   let lastScroll = 0;
@@ -41,37 +44,56 @@
   });
 
   // --- Scroll-triggered animations ---
-  if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const animatedElements = document.querySelectorAll(
-      '.about-card, .timeline-item, .doc-card, .contact-form-wrapper, .contact-card'
-    );
+  var observer = null;
 
-    const observer = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      {
-        threshold: 0.15,
-        rootMargin: '0px 0px -40px 0px',
-      }
-    );
-
-    animatedElements.forEach(function (el) {
-      observer.observe(el);
-    });
-  } else {
-    // If no IntersectionObserver or reduced motion, show everything
-    document.querySelectorAll(
-      '.about-card, .timeline-item, .doc-card, .contact-form-wrapper, .contact-card'
-    ).forEach(function (el) {
-      el.classList.add('visible');
-    });
+  function initObserver() {
+    if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      observer = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        {
+          threshold: 0.15,
+          rootMargin: '0px 0px -40px 0px',
+        }
+      );
+    }
   }
+
+  /**
+   * Observe elements for scroll-triggered animations.
+   * Accepts a CSS selector string or a NodeList/Array of elements.
+   */
+  function observeElements(elements) {
+    var els = typeof elements === 'string'
+      ? document.querySelectorAll(elements)
+      : elements;
+
+    if (observer) {
+      els.forEach(function (el) {
+        observer.observe(el);
+      });
+    } else {
+      // No observer (reduced motion or unsupported) — show immediately
+      els.forEach(function (el) {
+        el.classList.add('visible');
+      });
+    }
+  }
+
+  initObserver();
+  // Observe static elements (about cards, contact cards, etc.)
+  observeElements('.about-card, .contact-form-wrapper, .contact-card');
+  // Note: timeline-item and doc-card are now loaded dynamically — they'll be
+  // observed after rendering by firestore-content.js via GOS.observeElements()
+
+  // Expose for dynamic content
+  window.GOS.observeElements = observeElements;
 
   // --- Contact form validation ---
   const form = document.getElementById('contactForm');
@@ -126,7 +148,6 @@
 
   // --- Termine filter with sliding pill ---
   const filterBtns = document.querySelectorAll('.filter-btn');
-  const timelineItems = document.querySelectorAll('.timeline-item[data-category]');
   const filterBar = document.querySelector('.filter-bar');
 
   // Create sliding pill element
@@ -163,6 +184,9 @@
   filterBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
       var filter = this.getAttribute('data-filter');
+
+      // Re-query timeline items each time (supports dynamically loaded content)
+      var timelineItems = document.querySelectorAll('.timeline-item[data-category]');
 
       // Update active button
       filterBtns.forEach(function (b) { b.classList.remove('active'); });

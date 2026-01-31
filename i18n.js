@@ -196,6 +196,7 @@ var I18N = (function () {
   };
 
   var currentLang = 'de';
+  var changeCallbacks = [];
 
   function t(key) {
     var dict = translations[currentLang] || translations.de;
@@ -247,6 +248,20 @@ var I18N = (function () {
       btn.classList.toggle('active', isActive);
       if (isActive) updateLangPill(btn);
     });
+    // Notify change listeners
+    changeCallbacks.forEach(function (cb) {
+      try { cb(lang); } catch (e) { console.error('I18N onChange callback error:', e); }
+    });
+  }
+
+  function getLang() {
+    return currentLang;
+  }
+
+  function onChange(callback) {
+    if (typeof callback === 'function') {
+      changeCallbacks.push(callback);
+    }
   }
 
   function init() {
@@ -285,5 +300,5 @@ var I18N = (function () {
     });
   }
 
-  return { init: init, setLang: setLang, t: t };
+  return { init: init, setLang: setLang, t: t, getLang: getLang, onChange: onChange };
 })();
