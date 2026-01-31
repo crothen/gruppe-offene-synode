@@ -223,14 +223,29 @@ var I18N = (function () {
     document.title = t('meta.title');
   }
 
+  function updateLangPill(targetBtn) {
+    var switcher = targetBtn.closest('.lang-switcher');
+    if (!switcher) return;
+    var pill = switcher.querySelector('.lang-pill');
+    if (!pill) {
+      pill = document.createElement('div');
+      pill.className = 'lang-pill';
+      switcher.insertBefore(pill, switcher.firstChild);
+    }
+    pill.style.width = targetBtn.offsetWidth + 'px';
+    pill.style.transform = 'translateX(' + targetBtn.offsetLeft + 'px)';
+  }
+
   function setLang(lang) {
     if (!translations[lang]) return;
     currentLang = lang;
     try { localStorage.setItem('gos-lang', lang); } catch (e) {}
     applyAll();
-    // Update switcher active state
+    // Update switcher active state + pill
     document.querySelectorAll('.lang-btn').forEach(function (btn) {
-      btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+      var isActive = btn.getAttribute('data-lang') === lang;
+      btn.classList.toggle('active', isActive);
+      if (isActive) updateLangPill(btn);
     });
   }
 
@@ -246,12 +261,27 @@ var I18N = (function () {
     }
     applyAll();
 
-    // Wire up switcher buttons
+    // Wire up switcher buttons + create pills
     document.querySelectorAll('.lang-btn').forEach(function (btn) {
-      btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang);
+      var isActive = btn.getAttribute('data-lang') === currentLang;
+      btn.classList.toggle('active', isActive);
       btn.addEventListener('click', function () {
         setLang(this.getAttribute('data-lang'));
       });
+      if (isActive) {
+        // Init pill without animation
+        var switcher = btn.closest('.lang-switcher');
+        if (switcher) {
+          var pill = document.createElement('div');
+          pill.className = 'lang-pill';
+          pill.style.transition = 'none';
+          switcher.insertBefore(pill, switcher.firstChild);
+          pill.style.width = btn.offsetWidth + 'px';
+          pill.style.transform = 'translateX(' + btn.offsetLeft + 'px)';
+          pill.offsetHeight; // reflow
+          pill.style.transition = '';
+        }
+      }
     });
   }
 
