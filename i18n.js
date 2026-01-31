@@ -94,6 +94,7 @@ var I18N = (function () {
       'footer.name':      '✦ Gruppe Offene Synode',
       'footer.desc':      'Fraktion der Synode der Reformierten Kirchen Bern-Jura-Solothurn',
       'footer.copy':      '© 2025 Gruppe Offene Synode. Alle Rechte vorbehalten.',
+      'footer.admin':     'Admin',
 
       // Meta
       'meta.desc':        'Gruppe Offene Synode (GOS) – Fraktion der Synode der Reformierten Kirchen Bern-Jura-Solothurn. Für Gerechtigkeit, Frieden und Bewahrung der Schöpfung.',
@@ -188,6 +189,7 @@ var I18N = (function () {
       'footer.name':      '✦ Groupe Synode Ouverte',
       'footer.desc':      'Fraction du Synode des Églises réformées Berne-Jura-Soleure',
       'footer.copy':      '© 2025 Groupe Synode Ouverte. Tous droits réservés.',
+      'footer.admin':     'Admin',
 
       // Meta
       'meta.desc':        'Groupe Synode Ouverte (GOS) – Fraction du Synode des Églises réformées Berne-Jura-Soleure. Pour la justice, la paix et la sauvegarde de la Création.',

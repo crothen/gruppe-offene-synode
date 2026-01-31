@@ -943,6 +943,18 @@ a:hover {
   color: rgba(255, 255, 255, 0.4);
 }
 
+.footer-admin-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.2);
+  transition: color 0.2s var(--ease);
+}
+
+.footer-admin-link:hover {
+  color: rgba(255, 255, 255, 0.5);
+}
+
 /* --- Responsive --- */
 @media (max-width: 768px) {
   :root {
