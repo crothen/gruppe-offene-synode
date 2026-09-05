@@ -1,10 +1,17 @@
 {
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
   "hosting": {
     "public": ".",
     "ignore": [
       "firebase.json",
       ".firebase/**",
-      "seed-data.js"
+      "seed-data.js",
+      "migrate-firestore.mjs",
+      "*.rules",
+      "firestore.indexes.json"
     ],
     "headers": [
       {

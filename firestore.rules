@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Public read for events and documents
+    match /gos-events/{eventId} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && exists(/databases/$(database)/documents/gos-admins/$(request.auth.uid));
+    }
+
+    match /gos-documents/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && exists(/databases/$(database)/documents/gos-admins/$(request.auth.uid));
+    }
+
+    // Only admins can read/write admin list
+    match /gos-admins/{userId} {
+      allow read: if request.auth != null
+        && exists(/databases/$(database)/documents/gos-admins/$(request.auth.uid));
+      allow write: if request.auth != null
+        && get(/databases/$(database)/documents/gos-admins/$(request.auth.uid)).data.role == "admin";
+    }
+  }
+}

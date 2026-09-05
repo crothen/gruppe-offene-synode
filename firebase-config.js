@@ -1,11 +1,11 @@
 // Firebase configuration for Gruppe Offene Synode
-// Dedicated project: gos-offene-synode
+// Dedicated project: gruppe-offene-synode
 
 export const firebaseConfig = {
-  apiKey: "AIzaSyAYWg1XqQUrTiArIi0XA-OqaGdHs8_2Msk",
-  authDomain: "gos-offene-synode.firebaseapp.com",
-  projectId: "gos-offene-synode",
-  storageBucket: "gos-offene-synode.firebasestorage.app",
-  messagingSenderId: "806207949880",
-  appId: "1:806207949880:web:ee932435e4ec746e2c2acd"
+  apiKey: "AIzaSyDdwhb53zDuh18aOJKA0j5y-_Xx1SPIyrs",
+  authDomain: "gruppe-offene-synode.firebaseapp.com",
+  projectId: "gruppe-offene-synode",
+  storageBucket: "gruppe-offene-synode.firebasestorage.app",
+  messagingSenderId: "283371158939",
+  appId: "1:283371158939:web:9820dcc989a77b336f753e"
 };
