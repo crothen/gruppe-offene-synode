@@ -4,8 +4,10 @@
 // SMTP settings come from functions/.env (see .env.example). Without them, mails are only logged.
 const { onDocumentCreated, onDocumentUpdated } = require('firebase-functions/v2/firestore');
 const { setGlobalOptions, logger } = require('firebase-functions/v2');
+const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { getAuth } = require('firebase-admin/auth');
 const { initializeApp } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const nodemailer = require('nodemailer');
 
 initializeApp();
@@ -75,4 +77,31 @@ exports.onMemberRequestDecided = onDocumentUpdated('gos-requests/{uid}', async (
       `Freundliche Grüsse\n${SITE_NAME}`
     );
   }
+});
+
+// Admin-only: turn a member (identified by e-mail) into an admin or editor.
+// Needs the Admin SDK because the browser cannot map an e-mail to an Auth UID.
+exports.promoteToAdmin = onCall({ cors: true }, async (req) => {
+  if (!req.auth) throw new HttpsError('unauthenticated', 'Bitte anmelden.');
+  const db = getFirestore();
+  const me = await db.collection('gos-admins').doc(req.auth.uid).get();
+  if (!me.exists || me.data().role !== 'admin') throw new HttpsError('permission-denied', 'Nur Administratoren können Rollen vergeben.');
+
+  const email = String(req.data?.email || '').trim().toLowerCase();
+  const role = req.data?.role === 'editor' ? 'editor' : 'admin';
+  if (!email) throw new HttpsError('invalid-argument', 'E-Mail-Adresse fehlt.');
+
+  let user;
+  try { user = await getAuth().getUserByEmail(email); }
+  catch { throw new HttpsError('not-found', 'Zu dieser E-Mail-Adresse gibt es noch kein Login-Konto. Die Person muss sich zuerst einmal auf der Website anmelden.'); }
+
+  const member = await db.collection('gos-members').doc(email).get();
+  const displayName = (member.exists && member.data().displayName) || user.displayName || '';
+  await db.collection('gos-admins').doc(user.uid).set({
+    email, displayName, role,
+    createdAt: FieldValue.serverTimestamp(),
+    promotedBy: req.auth.token.email || req.auth.uid,
+  }, { merge: true });
+  logger.info('promoted', { email, role, by: req.auth.token.email });
+  return { uid: user.uid, role, displayName };
 });

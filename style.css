@@ -322,6 +322,12 @@ a:hover {
   color: var(--color-forest-dark);
 }
 
+.hero-creed-source {
+  margin: -0.5rem 0 2rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
 /* --- Wer wir sind / Was wir wollen / Wie wir arbeiten --- */
 .section-who {
   background: var(--color-cream);

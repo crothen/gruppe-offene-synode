@@ -26,6 +26,7 @@ import {
 import {
   getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject
 } from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-storage.js';
+import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-functions.js';
 import { firebaseConfig } from './firebase-config.js';
 
 // --- Firebase Init ---
@@ -33,6 +34,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
+const functions = getFunctions(app, 'europe-west1');
 const googleProvider = new GoogleAuthProvider();
 
 // --- State ---
@@ -760,6 +762,9 @@ function renderUsersList() {
           <p>${escHtml(m.email)}</p>
         </div>
         <span class="user-role role-member">Mitglied</span>
+        <button class="btn-icon" data-action="promote-member" data-email="${escAttr(m.email)}" title="Zum Administrator machen">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>
+        </button>
         <button class="btn-icon" data-action="reset-member" data-email="${escAttr(m.email)}" title="Passwort-Link senden">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </button>
@@ -806,7 +811,7 @@ function renderUsersList() {
     </div>
     <div class="users-group">
       <h3>Administratoren</h3>
-      <p class="users-hint">Haben Zugang zu diesem Admin-Portal.</p>
+      <p class="users-hint">Haben Zugang zu diesem Admin-Portal. Mitglieder können über das Stern-Symbol zu Administratoren gemacht werden.</p>
       ${adminCards}
     </div>`;
 
@@ -852,6 +857,19 @@ function renderUsersList() {
         try { await deleteDoc(doc(db, 'gos-members', email)); showToast('Mitglied entfernt'); loadUsers(); }
         catch (err) { showToast('Fehler: ' + err.message, 'error'); }
       }
+    }
+
+    if (btn.dataset.action === 'promote-member') {
+      const email = btn.dataset.email;
+      const m = membersCache.find(x => x.email === email);
+      const confirmed = await confirmDialog('Zum Administrator machen', `"${m?.displayName || email}" erhält damit Zugang zum Admin-Portal und kann alle Inhalte und Benutzer verwalten.`, { confirmText: 'Zum Admin machen', primary: true });
+      if (!confirmed) return;
+      try {
+        const res = await httpsCallable(functions, 'promoteToAdmin')({ email, role: 'admin' });
+        showToast((res.data.displayName || email) + ' ist jetzt Administrator');
+        loadUsers();
+      } catch (err) { showToast('Fehler: ' + (err.message || err), 'error'); }
+      return;
     }
 
     if (btn.dataset.action === 'reset-member') {
