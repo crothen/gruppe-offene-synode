@@ -32,7 +32,7 @@ exports.onMemberRequestCreated = onDocumentCreated('gos-requests/{uid}', async (
   const d = event.data?.data();
   if (!d) return;
   const admins = await getFirestore().collection('gos-admins').where('role', '==', 'admin').get();
-  const to = admins.docs.map((x) => x.data().email).filter(Boolean);
+  const to = [...new Set(admins.docs.map((x) => x.data().email).filter(Boolean))];
   if (!to.length) { logger.warn('no admin e-mail addresses found'); return; }
   await sendMail(
     to,
