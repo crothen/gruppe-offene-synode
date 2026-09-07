@@ -24,7 +24,11 @@ function transporter() {
 async function sendMail(to, subject, text) {
   const t = transporter();
   if (!t) { logger.warn('SMTP not configured – mail NOT sent', { to, subject }); return; }
-  await t.sendMail({ from: process.env.MAIL_FROM || process.env.SMTP_USER, to, subject, text });
+  await t.sendMail({
+    from: process.env.MAIL_FROM || process.env.SMTP_USER,
+    ...(process.env.MAIL_REPLY_TO ? { replyTo: process.env.MAIL_REPLY_TO } : {}),
+    to, subject, text,
+  });
   logger.info('mail sent', { to, subject });
 }
 
