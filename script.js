@@ -175,11 +175,13 @@
     updatePill(initialActive, false);
   }
 
-  // Reposition on resize
-  window.addEventListener('resize', function () {
+  // Reposition on resize, or when firestore-content.js shows/hides buttons
+  function refreshFilterPill() {
     var activeBtn = filterBar ? filterBar.querySelector('.filter-btn.active') : null;
     if (activeBtn) updatePill(activeBtn, false);
-  });
+  }
+  window.addEventListener('resize', refreshFilterPill);
+  window.GOS.refreshFilterPill = refreshFilterPill;
 
   filterBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {

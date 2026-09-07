@@ -265,7 +265,7 @@ function renderEventsList() {
     return;
   }
 
-  const badgeLabels = { gos: 'GOS', synode: 'Synode' };
+  const badgeLabels = { gos: 'GOS', synode: 'Synode', andere: 'Andere' };
 
   list.innerHTML = eventsCache.map(ev => `
     <div class="item-card" data-id="${ev.id}">
@@ -359,6 +359,7 @@ function showEventForm(event) {
           <select id="ef-category" required>
             <option value="gos" ${event?.category === 'gos' ? 'selected' : ''}>GOS</option>
             <option value="synode" ${event?.category === 'synode' ? 'selected' : ''}>Synode</option>
+            <option value="andere" ${event?.category === 'andere' ? 'selected' : ''}>Andere</option>
           </select>
         </div>
         <div class="form-row">

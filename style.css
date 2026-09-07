@@ -866,6 +866,15 @@ a:hover {
   box-shadow: 0 0 0 2px var(--color-forest);
 }
 
+.dot-andere {
+  background: var(--color-earth);
+  box-shadow: 0 0 0 2px var(--color-earth);
+}
+
+.filter-bar[hidden] {
+  display: none;
+}
+
 /* Filter animation */
 .timeline-item {
   transition: opacity 0.4s cubic-bezier(0.4, 0, 0.15, 1),

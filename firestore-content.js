@@ -44,6 +44,20 @@ const DOWNLOAD_ICON_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill=
 </svg>`;
 
 // --- Render Events ---
+// Only offer filter buttons for categories that actually have events; hide the
+// whole bar when there is nothing to choose between.
+function updateFilterBar(categories) {
+  const bar = document.querySelector('.filter-bar');
+  if (!bar) return;
+  const present = new Set(categories);
+  bar.querySelectorAll('.filter-btn[data-filter]').forEach((btn) => {
+    const f = btn.dataset.filter;
+    if (f !== 'all') btn.hidden = !present.has(f);
+  });
+  bar.hidden = present.size < 2;
+  if (window.GOS && window.GOS.refreshFilterPill) window.GOS.refreshFilterPill();
+}
+
 function renderEvents() {
   const timeline = document.querySelector('.timeline');
   if (!timeline) return;
@@ -53,8 +67,9 @@ function renderEvents() {
     return;
   }
 
-  const badgeLabels = { gos: 'GOS', synode: 'Synode' };
-  const dotClasses = { gos: 'dot-gos', synode: 'dot-synode' };
+  const badgeLabels = { gos: 'GOS', synode: 'Synode', andere: 'Andere' };
+  const dotClasses = { gos: 'dot-gos', synode: 'dot-synode', andere: 'dot-andere' };
+  updateFilterBar(eventsData.map((ev) => ev.category || 'gos'));
 
   timeline.innerHTML = eventsData.map(function (ev) {
     const category = ev.category || 'gos';
