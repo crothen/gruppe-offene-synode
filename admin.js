@@ -902,7 +902,7 @@ function showMemberForm() {
       </div>
       <div class="form-row">
         <label for="mf-password">Start-Passwort (mind. 6 Zeichen)</label>
-        <input type="text" id="mf-password" minlength="6" autocomplete="off" placeholder="Wird der Person mitgeteilt">
+        <input type="text" id="mf-password" minlength="6" autocomplete="off" value="synode_2026" placeholder="Wird der Person mitgeteilt">
       </div>
       <div class="form-actions">
         <button type="button" class="btn-secondary" onclick="document.getElementById('modal').style.display='none'">Abbrechen</button>
