@@ -334,6 +334,24 @@ a:hover {
 }
 
 
+.section-photo {
+  max-width: 720px;
+  margin: 2.5rem auto 0;
+}
+
+.section-photo img {
+  width: 100%;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(45, 80, 22, 0.1);
+}
+
+.section-photo figcaption {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
 .prose {
   max-width: 720px;
   margin: 0 auto;
