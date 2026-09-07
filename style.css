@@ -1071,6 +1071,38 @@ a:hover {
   min-height: 120px;
 }
 
+.form-success {
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 1.25rem;
+  border-radius: 10px;
+  background: rgba(90, 114, 71, 0.12);
+  color: var(--color-forest-dark);
+  font-weight: 600;
+}
+
+.form-success[hidden],
+.form-error-global[hidden] {
+  display: none;
+}
+
+.form-error-global {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.hp-field {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.contact-form.sending .btn-submit {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 .form-error {
   display: none;
   font-size: 0.82rem;

@@ -82,6 +82,7 @@ onAuthStateChanged(auth, async (user) => {
         $('userDisplay').textContent = user.email;
         showScreen(dashboard);
         loadCurrentTab();
+        refreshContactBadge();
       } else {
         currentAdmin = null;
         showScreen(accessDenied);
@@ -170,6 +171,7 @@ function loadCurrentTab() {
     case 'users': loadUsers(); break;
     case 'texts': loadTexts(); break;
     case 'people': loadPeople(); break;
+    case 'contact': loadContact(); break;
   }
 }
 
@@ -724,6 +726,81 @@ function uploadFile(file) {
       }
     );
   });
+}
+
+// ============================================
+// CONTACT MESSAGES (gos-contact)
+// ============================================
+let contactCache = [];
+
+async function refreshContactBadge() {
+  const tab = document.querySelector('.tab-btn[data-tab="contact"]');
+  if (!tab) return;
+  let n = 0;
+  try { n = (await getDocs(query(collection(db, 'gos-contact'), where('read', '==', false)))).size; } catch { n = 0; }
+  let badge = tab.querySelector('.tab-badge');
+  if (!n) { if (badge) badge.remove(); return; }
+  if (!badge) { badge = document.createElement('span'); badge.className = 'tab-badge'; tab.appendChild(badge); }
+  badge.textContent = n;
+  badge.title = n + ' ungelesene Nachricht' + (n === 1 ? '' : 'en');
+}
+
+async function loadContact() {
+  const list = $('contactList');
+  list.innerHTML = '<div class="items-loading"><div class="spinner"></div></div>';
+  try {
+    const snapshot = await getDocs(query(collection(db, 'gos-contact'), orderBy('createdAt', 'desc')));
+    contactCache = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderContactList();
+    refreshContactBadge();
+  } catch (err) {
+    console.error('Load contact error:', err);
+    list.innerHTML = '<div class="items-empty">Fehler beim Laden.</div>';
+  }
+}
+
+function fmtDate(ts) {
+  const d = ts?.toDate ? ts.toDate() : null;
+  return d ? d.toLocaleString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+}
+
+function renderContactList() {
+  const list = $('contactList');
+  if (contactCache.length === 0) {
+    list.innerHTML = '<div class="items-empty">Keine Kontaktanfragen.</div>';
+    return;
+  }
+  list.innerHTML = contactCache.map(m => `
+    <div class="message-card ${m.read ? '' : 'unread'}" data-id="${m.id}">
+      <div class="message-head">
+        <div>
+          <strong>${escHtml(m.name || 'Unbekannt')}</strong>
+          <a href="mailto:${escAttr(m.email || '')}?subject=${encodeURIComponent('Re: Ihre Nachricht an die Gruppe Offene Synode')}" class="message-mail">${escHtml(m.email || '')}</a>
+        </div>
+        <span class="message-date">${fmtDate(m.createdAt)}</span>
+      </div>
+      <p class="message-body">${escHtml(m.message || '').replace(/\n/g, '<br>')}</p>
+      <div class="message-actions">
+        <button class="btn-link" data-action="toggle-read" data-id="${m.id}">${m.read ? 'Als ungelesen markieren' : 'Als gelesen markieren'}</button>
+        <button class="btn-link btn-link-danger" data-action="delete-message" data-id="${m.id}">Löschen</button>
+      </div>
+    </div>`).join('');
+
+  list.onclick = async (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const m = contactCache.find(x => x.id === id);
+    if (btn.dataset.action === 'toggle-read') {
+      try { await updateDoc(doc(db, 'gos-contact', id), { read: !m.read }); m.read = !m.read; renderContactList(); refreshContactBadge(); }
+      catch (err) { showToast('Fehler: ' + err.message, 'error'); }
+    } else if (btn.dataset.action === 'delete-message') {
+      if (await confirmDialog('Nachricht löschen', `Nachricht von "${m?.name || ''}" wirklich löschen?`)) {
+        try { await deleteDoc(doc(db, 'gos-contact', id)); showToast('Gelöscht'); loadContact(); }
+        catch (err) { showToast('Fehler: ' + err.message, 'error'); }
+      }
+    }
+  };
 }
 
 // ============================================

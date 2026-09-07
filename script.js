@@ -133,9 +133,30 @@
         msgGroup.classList.remove('error');
       }
 
-      if (!valid) {
-        e.preventDefault();
-      }
+      e.preventDefault();
+      if (!valid) return;
+
+      const success = document.getElementById('contactSuccess');
+      const failed = document.getElementById('contactFailed');
+      if (success) success.hidden = true;
+      if (failed) failed.hidden = true;
+      if (!(window.GOS && window.GOS.sendContact)) { if (failed) failed.hidden = false; return; }
+
+      form.classList.add('sending');
+      window.GOS.sendContact({
+        name: nameInput.value.trim(),
+        email: emailInput.value.trim(),
+        message: msgInput.value.trim(),
+        honeypot: (document.getElementById('contactHoneypot') || {}).value || ''
+      }).then(function () {
+        form.reset();
+        if (success) { success.hidden = false; success.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+      }).catch(function (err) {
+        console.error('contact send failed', err);
+        if (failed) failed.hidden = false;
+      }).finally(function () {
+        form.classList.remove('sending');
+      });
     });
 
     // Clear errors on input

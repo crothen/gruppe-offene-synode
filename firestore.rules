@@ -49,6 +49,16 @@ service cloud.firestore {
       allow write: if isFullAdmin();
     }
 
+    // Contact form: anyone may submit a well-formed message, only admins read them
+    match /gos-contact/{msgId} {
+      allow create: if request.resource.data.keys().hasOnly(['name', 'email', 'message', 'read', 'createdAt', 'page'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 120
+        && request.resource.data.email is string && request.resource.data.email.size() >= 3 && request.resource.data.email.size() <= 200
+        && request.resource.data.message is string && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 5000
+        && request.resource.data.read == false;
+      allow read, update, delete: if isAdminUser();
+    }
+
     // Member list: admins manage, everyone may check their own entry
     match /gos-members/{email} {
       allow read: if isFullAdmin() || (hasEmail() && request.auth.token.email.lower() == email);

@@ -6,7 +6,7 @@
    ============================================ */
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-app.js';
-import { getFirestore, collection, getDocs, getDoc, doc, query, where, orderBy }
+import { getFirestore, collection, getDocs, getDoc, doc, addDoc, serverTimestamp, query, where, orderBy }
   from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-firestore.js';
 import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword }
   from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-auth.js';
@@ -254,6 +254,20 @@ async function loadPeople() {
     console.error('Failed to load people:', err); // static HTML stays
   }
 }
+
+// --- Kontaktformular -> gos-contact (read in the admin portal) -----------
+window.GOS = window.GOS || {};
+window.GOS.sendContact = async function ({ name, email, message, honeypot }) {
+  if (honeypot) return;   // bots fill the hidden field; pretend success
+  await addDoc(collection(db, 'gos-contact'), {
+    name: String(name).slice(0, 120),
+    email: String(email).slice(0, 200),
+    message: String(message).slice(0, 5000),
+    read: false,
+    createdAt: serverTimestamp(),
+    page: location.href.slice(0, 200),
+  });
+};
 
 // --- Mitglieder-Login ---------------------------------------------------
 // Documents are only for members: a signed-in user whose e-mail is listed in
