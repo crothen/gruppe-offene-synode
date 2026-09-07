@@ -6,13 +6,16 @@
    ============================================ */
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-app.js';
-import { getFirestore, collection, getDocs, query, where, orderBy }
+import { getFirestore, collection, getDocs, getDoc, doc, query, where, orderBy }
   from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-firestore.js';
+import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, sendPasswordResetEmail, signOut }
+  from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-auth.js';
 import { firebaseConfig } from './firebase-config.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 // --- State ---
 let eventsData = [];
@@ -171,7 +174,89 @@ async function loadDocuments() {
 }
 
 // --- Initialize ---
+// --- Mitglieder-Login ---------------------------------------------------
+// Documents are only for members: a signed-in user whose e-mail is listed in
+// "gos-members" (or who is an admin). Firestore rules enforce the same thing.
+const $ = (id) => document.getElementById(id);
+const AUTH_ERRORS = {
+  'auth/invalid-credential': 'E-Mail oder Passwort ist falsch.',
+  'auth/wrong-password': 'E-Mail oder Passwort ist falsch.',
+  'auth/user-not-found': 'Zu dieser E-Mail-Adresse gibt es kein Konto.',
+  'auth/invalid-email': 'Bitte eine gültige E-Mail-Adresse eingeben.',
+  'auth/too-many-requests': 'Zu viele Versuche. Bitte später noch einmal probieren.',
+  'auth/popup-closed-by-user': 'Anmeldung abgebrochen.',
+  'auth/missing-password': 'Bitte das Passwort eingeben.',
+};
+let documentsLoaded = false;
+
+function showAuthError(err) {
+  const el = $('authError');
+  el.textContent = err ? (AUTH_ERRORS[err.code] || 'Anmeldung fehlgeschlagen: ' + (err.message || err)) : '';
+  el.hidden = !err;
+}
+
+function openAuthModal() { $('authModal').hidden = false; showAuthError(null); ($('authSignedOut').hidden ? null : $('authEmail')).focus?.(); }
+function closeAuthModal() { $('authModal').hidden = true; }
+
+async function isMemberUser(user) {
+  const email = (user.email || '').toLowerCase();
+  const checks = [getDoc(doc(db, 'gos-admins', user.uid)).catch(() => null)];
+  if (email) checks.push(getDoc(doc(db, 'gos-members', email)).catch(() => null));
+  const results = await Promise.all(checks);
+  return results.some((s) => s && s.exists());
+}
+
+function applyMemberState(user, isMember) {
+  $('navDocs').hidden = !isMember;
+  $('dokumente').hidden = !isMember;
+  $('navAuth').textContent = user ? 'Abmelden' : 'Anmelden';
+  $('navAuth').title = user ? 'Angemeldet als ' + (user.email || '') : '';
+  $('authSignedOut').hidden = !!user;
+  $('authNotMember').hidden = !(user && !isMember);
+  if (user && !isMember) { $('authNotMemberEmail').textContent = user.email || ''; }
+  if (isMember && !documentsLoaded) { documentsLoaded = true; loadDocuments(); }
+  if (!isMember) documentsLoaded = false;
+}
+
+function initAuthUi() {
+  if (!$('authModal')) return;
+  $('navAuth').addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (auth.currentUser) { await signOut(auth); closeAuthModal(); }
+    else openAuthModal();
+  });
+  $('authClose').addEventListener('click', closeAuthModal);
+  $('authModal').addEventListener('click', (e) => { if (e.target === $('authModal')) closeAuthModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAuthModal(); });
+  $('authForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    showAuthError(null);
+    try { await signInWithEmailAndPassword(auth, $('authEmail').value.trim(), $('authPassword').value); }
+    catch (err) { showAuthError(err); }
+  });
+  $('authReset').addEventListener('click', async () => {
+    const email = $('authEmail').value.trim();
+    if (!email) { showAuthError({ code: 'auth/invalid-email' }); $('authEmail').focus(); return; }
+    try { await sendPasswordResetEmail(auth, email); showAuthError({ message: 'E-Mail zum Zurücksetzen wurde an ' + email + ' geschickt.' }); $('authError').style.color = 'var(--color-forest)'; }
+    catch (err) { $('authError').style.color = ''; showAuthError(err); }
+  });
+  $('authGoogle').addEventListener('click', async () => {
+    showAuthError(null);
+    try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch (err) { showAuthError(err); }
+  });
+  $('authSignOut2').addEventListener('click', () => signOut(auth));
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { applyMemberState(null, false); return; }
+    const member = await isMemberUser(user);
+    applyMemberState(user, member);
+    if (member) { closeAuthModal(); }
+    else { openAuthModal(); }
+  });
+}
+
+// --- Initialize ---
 (async function init() {
-  // Load content from Firestore
-  await Promise.all([loadEvents(), loadDocuments()]);
+  initAuthUi();
+  await loadEvents();   // documents load once a member is signed in
 })();

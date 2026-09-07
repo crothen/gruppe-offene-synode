@@ -1,25 +1,48 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Public read for events and documents
+    function signedIn() {
+      return request.auth != null;
+    }
+    // Anyone listed in gos-admins (role admin or editor) may use the admin portal.
+    function isAdminUser() {
+      return signedIn() && exists(/databases/$(database)/documents/gos-admins/$(request.auth.uid));
+    }
+    function isFullAdmin() {
+      return isAdminUser()
+        && get(/databases/$(database)/documents/gos-admins/$(request.auth.uid)).data.role == "admin";
+    }
+    function hasEmail() {
+      return signedIn() && 'email' in request.auth.token;
+    }
+    // Members are listed in gos-members by lower-cased e-mail address.
+    function isMember() {
+      return isAdminUser()
+        || (hasEmail() && exists(/databases/$(database)/documents/gos-members/$(request.auth.token.email.lower())));
+    }
+
+    // Events: public
     match /gos-events/{eventId} {
       allow read: if true;
-      allow write: if request.auth != null
-        && exists(/databases/$(database)/documents/gos-admins/$(request.auth.uid));
+      allow write: if isAdminUser();
     }
 
+    // Documents: members only
     match /gos-documents/{docId} {
-      allow read: if true;
-      allow write: if request.auth != null
-        && exists(/databases/$(database)/documents/gos-admins/$(request.auth.uid));
+      allow read: if isMember();
+      allow write: if isAdminUser();
     }
 
-    // Only admins can read/write admin list
+    // Admin list: admins see all, everyone may check their own entry
     match /gos-admins/{userId} {
-      allow read: if request.auth != null
-        && exists(/databases/$(database)/documents/gos-admins/$(request.auth.uid));
-      allow write: if request.auth != null
-        && get(/databases/$(database)/documents/gos-admins/$(request.auth.uid)).data.role == "admin";
+      allow read: if isAdminUser() || (signedIn() && request.auth.uid == userId);
+      allow write: if isFullAdmin();
+    }
+
+    // Member list: admins manage, everyone may check their own entry
+    match /gos-members/{email} {
+      allow read: if isFullAdmin() || (hasEmail() && request.auth.token.email.lower() == email);
+      allow write: if isFullAdmin();
     }
   }
 }

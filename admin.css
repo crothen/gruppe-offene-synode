@@ -1039,3 +1039,31 @@ body {
     display: none;
   }
 }
+
+/* --- Users: admins + members --- */
+.panel-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.users-group {
+  margin-bottom: 2rem;
+}
+
+.users-group h3 {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  color: var(--color-forest-dark);
+  margin-bottom: 0.75rem;
+}
+
+.users-group .users-hint {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.user-role.role-member {
+  background: rgba(90, 114, 71, 0.12);
+  color: var(--color-olive);
+}

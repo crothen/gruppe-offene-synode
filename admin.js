@@ -21,7 +21,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-firestore.js';
 import {
   getAuth, onAuthStateChanged, signInWithPopup, signInWithEmailAndPassword,
-  GoogleAuthProvider, signOut
+  GoogleAuthProvider, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail
 } from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-auth.js';
 import {
   getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject
@@ -683,8 +683,10 @@ function uploadFile(file) {
 }
 
 // ============================================
-// USERS CRUD
+// USERS: admins (gos-admins, by UID) + members (gos-members, by e-mail)
 // ============================================
+let membersCache = [];
+
 async function loadUsers() {
   const list = $('usersList');
 
@@ -697,8 +699,13 @@ async function loadUsers() {
   list.innerHTML = '<div class="items-loading"><div class="spinner"></div></div>';
 
   try {
-    const snapshot = await getDocs(collection(db, 'gos-admins'));
-    usersCache = snapshot.docs.map(d => ({ uid: d.id, ...d.data() }));
+    const [admins, members] = await Promise.all([
+      getDocs(collection(db, 'gos-admins')),
+      getDocs(collection(db, 'gos-members'))
+    ]);
+    usersCache = admins.docs.map(d => ({ uid: d.id, ...d.data() }));
+    membersCache = members.docs.map(d => ({ email: d.id, ...d.data() }))
+      .sort((a, b) => (a.displayName || a.email).localeCompare(b.displayName || b.email, 'de'));
     renderUsersList();
   } catch (err) {
     console.error('Load users error:', err);
@@ -706,37 +713,59 @@ async function loadUsers() {
   }
 }
 
+const TRASH_SVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <polyline points="3 6 5 6 21 6"/>
+  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+</svg>`;
+
+function initialsOf(name) {
+  return (name || '?').split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+}
+
 function renderUsersList() {
   const list = $('usersList');
 
-  if (usersCache.length === 0) {
-    list.innerHTML = '<div class="items-empty">Keine Benutzer vorhanden.</div>';
-    return;
-  }
+  const memberCards = membersCache.length === 0
+    ? '<div class="items-empty">Noch keine Mitglieder. Mitglieder sehen nach dem Login den Bereich «Dokumente» auf der Website.</div>'
+    : membersCache.map(m => `
+      <div class="user-card" data-email="${escAttr(m.email)}">
+        <div class="user-avatar">${initialsOf(m.displayName || m.email)}</div>
+        <div class="user-info">
+          <h4>${escHtml(m.displayName || 'Unbenannt')}</h4>
+          <p>${escHtml(m.email)}</p>
+        </div>
+        <span class="user-role role-member">Mitglied</span>
+        <button class="btn-icon" data-action="reset-member" data-email="${escAttr(m.email)}" title="Passwort-Link senden">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </button>
+        <button class="btn-icon btn-icon-danger" data-action="remove-member" data-email="${escAttr(m.email)}" title="Entfernen">${TRASH_SVG}</button>
+      </div>`).join('');
 
-  list.innerHTML = usersCache.map(u => {
-    const initials = (u.displayName || u.email || '?')
-      .split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  const adminCards = usersCache.map(u => {
     const isCurrentUser = u.uid === currentUser?.uid;
-
     return `
       <div class="user-card" data-uid="${u.uid}">
-        <div class="user-avatar">${initials}</div>
+        <div class="user-avatar">${initialsOf(u.displayName || u.email)}</div>
         <div class="user-info">
           <h4>${escHtml(u.displayName || 'Unbenannt')}${isCurrentUser ? ' (Sie)' : ''}</h4>
           <p>${escHtml(u.email || '')}</p>
         </div>
         <span class="user-role ${u.role === 'admin' ? 'role-admin' : ''}">${escHtml(u.role || 'editor')}</span>
-        ${!isCurrentUser ? `
-          <button class="btn-icon btn-icon-danger" data-action="remove-user" data-uid="${u.uid}" title="Entfernen">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"/>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-            </svg>
-          </button>
-        ` : ''}
+        ${!isCurrentUser ? `<button class="btn-icon btn-icon-danger" data-action="remove-user" data-uid="${u.uid}" title="Entfernen">${TRASH_SVG}</button>` : ''}
       </div>`;
   }).join('');
+
+  list.innerHTML = `
+    <div class="users-group">
+      <h3>Mitglieder</h3>
+      <p class="users-hint">Können sich auf der Website anmelden und sehen die Dokumente. Login mit E-Mail und Passwort oder mit einem Google-Konto derselben E-Mail-Adresse.</p>
+      ${memberCards}
+    </div>
+    <div class="users-group">
+      <h3>Administratoren</h3>
+      <p class="users-hint">Haben Zugang zu diesem Admin-Portal.</p>
+      ${adminCards}
+    </div>`;
 
   // Event delegation
   list.onclick = async (e) => {
@@ -746,27 +775,96 @@ function renderUsersList() {
     if (btn.dataset.action === 'remove-user') {
       const uid = btn.dataset.uid;
       const u = usersCache.find(x => x.uid === uid);
-      const confirmed = await confirmDialog(
-        'Benutzer entfernen',
-        `"${u?.displayName || u?.email || ''}" wirklich als Admin entfernen?`
-      );
+      const confirmed = await confirmDialog('Administrator entfernen', `"${u?.displayName || u?.email || ''}" wirklich als Admin entfernen?`);
       if (confirmed) {
-        try {
-          await deleteDoc(doc(db, 'gos-admins', uid));
-          showToast('Benutzer entfernt');
-          loadUsers();
-        } catch (err) {
-          showToast('Fehler: ' + err.message, 'error');
-        }
+        try { await deleteDoc(doc(db, 'gos-admins', uid)); showToast('Administrator entfernt'); loadUsers(); }
+        catch (err) { showToast('Fehler: ' + err.message, 'error'); }
       }
+    }
+
+    if (btn.dataset.action === 'remove-member') {
+      const email = btn.dataset.email;
+      const m = membersCache.find(x => x.email === email);
+      const confirmed = await confirmDialog('Mitglied entfernen', `"${m?.displayName || email}" wirklich entfernen? Die Person sieht die Dokumente danach nicht mehr.`);
+      if (confirmed) {
+        try { await deleteDoc(doc(db, 'gos-members', email)); showToast('Mitglied entfernt'); loadUsers(); }
+        catch (err) { showToast('Fehler: ' + err.message, 'error'); }
+      }
+    }
+
+    if (btn.dataset.action === 'reset-member') {
+      const email = btn.dataset.email;
+      try { await sendPasswordResetEmail(auth, email); showToast('Passwort-Link an ' + email + ' gesendet'); }
+      catch (err) { showToast('Fehler: ' + err.message, 'error'); }
     }
   };
 }
 
 $('btnAddUser').addEventListener('click', () => showUserForm());
+$('btnAddMember').addEventListener('click', () => showMemberForm());
+
+function showMemberForm() {
+  openModal('Neues Mitglied', `
+    <form id="memberForm">
+      <div class="form-row">
+        <label for="mf-displayName">Name</label>
+        <input type="text" id="mf-displayName" placeholder="Vor- und Nachname" required>
+      </div>
+      <div class="form-row">
+        <label for="mf-email">E-Mail</label>
+        <input type="email" id="mf-email" placeholder="mitglied@beispiel.ch" required>
+      </div>
+      <div class="form-row">
+        <label for="mf-password">Start-Passwort (mind. 6 Zeichen)</label>
+        <input type="text" id="mf-password" minlength="6" autocomplete="off" placeholder="Wird der Person mitgeteilt">
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" onclick="document.getElementById('modal').style.display='none'">Abbrechen</button>
+        <button type="submit" class="btn-primary">Hinzufügen</button>
+      </div>
+    </form>
+    <p style="margin-top:1rem; font-size:0.82rem; color:var(--color-text-muted);">
+      Mit Start-Passwort wird ein Login-Konto erstellt; die Person kann das Passwort über «Passwort vergessen?» jederzeit selbst ändern.
+      Ohne Passwort wird nur die E-Mail-Adresse freigeschaltet (Login dann mit Google-Konto oder bestehendem Konto).
+    </p>
+  `);
+
+  $('memberForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = $('mf-email').value.trim().toLowerCase();
+    const displayName = $('mf-displayName').value.trim();
+    const password = $('mf-password').value;
+    const submitBtn = e.target.querySelector('button[type=submit]');
+    submitBtn.disabled = true;
+
+    try {
+      let note = '';
+      if (password) {
+        // Create the login account in a second app instance so the admin stays signed in here.
+        const secondary = initializeApp(firebaseConfig, 'member-signup-' + Date.now());
+        try {
+          await createUserWithEmailAndPassword(getAuth(secondary), email, password);
+          await signOut(getAuth(secondary));
+        } catch (err) {
+          if (err.code === 'auth/email-already-in-use') note = ' (Konto bestand schon, Passwort unverändert)';
+          else throw err;
+        }
+      }
+      await setDoc(doc(db, 'gos-members', email), {
+        email, displayName, createdAt: serverTimestamp(), addedBy: currentUser?.email || ''
+      });
+      showToast('Mitglied hinzugefügt' + note);
+      closeModal();
+      loadUsers();
+    } catch (err) {
+      showToast('Fehler: ' + err.message, 'error');
+      submitBtn.disabled = false;
+    }
+  });
+}
 
 function showUserForm() {
-  openModal('Neuer Benutzer', `
+  openModal('Neuer Administrator', `
     <form id="userForm">
       <div class="form-row">
         <label for="uf-uid">Firebase Auth UID</label>
@@ -793,8 +891,8 @@ function showUserForm() {
       </div>
     </form>
     <p style="margin-top:1rem; font-size:0.82rem; color:var(--color-text-muted);">
-      <strong>Hinweis:</strong> Der Benutzer muss sich zuerst einmal über die 
-      Admin-Seite anmelden (Google oder E-Mail), damit ein Firebase Auth-Konto erstellt wird. 
+      <strong>Hinweis:</strong> Der Benutzer muss sich zuerst einmal über die
+      Admin-Seite anmelden (Google oder E-Mail), damit ein Firebase Auth-Konto erstellt wird.
       Die UID finden Sie in der Firebase Console unter Authentication → Users.
     </p>
   `);
@@ -811,7 +909,7 @@ function showUserForm() {
 
     try {
       await setDoc(doc(db, 'gos-admins', uid), data);
-      showToast('Benutzer hinzugefügt');
+      showToast('Administrator hinzugefügt');
       closeModal();
       loadUsers();
     } catch (err) {
