@@ -1117,3 +1117,47 @@ body {
   line-height: 1;
   vertical-align: middle;
 }
+
+/* --- document form: file state --- */
+.file-current,
+.file-selected {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+}
+
+.file-current {
+  background: rgba(90, 114, 71, 0.1);
+  color: var(--color-forest-dark);
+}
+
+.file-selected {
+  background: var(--color-sand);
+  color: var(--color-text);
+}
+
+.file-current[hidden],
+.file-selected[hidden] {
+  display: none;
+}
+
+.btn-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-forest);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.btn-link-danger {
+  color: var(--color-danger, #a33a2a);
+}

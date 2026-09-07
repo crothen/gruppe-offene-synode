@@ -564,6 +564,11 @@ function showDocumentForm(document_) {
       </div>
       <div class="form-row">
         <label>Datei</label>
+        <div class="file-current" id="fileCurrent" ${document_?.fileName ? '' : 'hidden'}>
+          <span>📎 Hochgeladen: <strong>${escHtml(displayFileName(document_?.fileName))}</strong></span>
+          ${document_?.fileUrl ? `<a href="${escAttr(document_.fileUrl)}" target="_blank" rel="noopener" class="btn-link">Öffnen</a>` : ''}
+          <button type="button" class="btn-link btn-link-danger" id="btnRemoveFile">Datei entfernen</button>
+        </div>
         <div class="file-upload-area" id="fileUploadArea">
           <div class="upload-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -572,10 +577,13 @@ function showDocumentForm(document_) {
               <line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
           </div>
-          <p>Datei auswählen oder hierher ziehen</p>
+          <p>${document_?.fileName ? 'Andere Datei auswählen oder hierher ziehen' : 'Datei auswählen oder hierher ziehen'}</p>
           <input type="file" id="df-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf">
         </div>
-        ${document_?.fileName ? `<div class="file-current">📎 Aktuelle Datei: <strong>${escHtml(document_.fileName)}</strong></div>` : ''}
+        <div class="file-selected" id="fileSelected" hidden>
+          <span>Ausgewählt: <strong id="fileSelectedName"></strong> – wird beim Speichern hochgeladen</span>
+          <button type="button" class="btn-link" id="btnClearSelected">Auswahl aufheben</button>
+        </div>
         <div id="uploadProgress" class="upload-progress" style="display:none">
           <div id="uploadProgressBar" class="upload-progress-bar"></div>
         </div>
@@ -602,6 +610,21 @@ function showDocumentForm(document_) {
     </form>
   `);
 
+  let removeCurrentFile = false;
+  const fileInputEl = $('df-file');
+  fileInputEl.addEventListener('change', () => {
+    const f = fileInputEl.files[0];
+    $('fileSelected').hidden = !f;
+    if (f) $('fileSelectedName').textContent = f.name + ' (' + Math.max(1, Math.round(f.size / 1024)) + ' KB)';
+  });
+  $('btnClearSelected').addEventListener('click', () => { fileInputEl.value = ''; $('fileSelected').hidden = true; });
+  $('btnRemoveFile').addEventListener('click', () => {
+    removeCurrentFile = true;
+    $('fileCurrent').hidden = true;
+    $('fileUploadArea').querySelector('p').textContent = 'Datei auswählen oder hierher ziehen';
+    showToast('Datei wird beim Speichern entfernt');
+  });
+
   $('docForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const submitBtn = $('docSubmitBtn');
@@ -613,6 +636,12 @@ function showDocumentForm(document_) {
 
     let fileUrl = document_?.fileUrl || '';
     let fileName = document_?.fileName || '';
+    const oldFileName = document_?.fileName || '';
+
+    if (removeCurrentFile && !file) {
+      fileUrl = '';
+      fileName = '';
+    }
 
     // Upload file if selected
     if (file) {
@@ -641,6 +670,9 @@ function showDocumentForm(document_) {
     try {
       if (isEdit) {
         await updateDoc(doc(db, 'gos-documents', document_.id), data);
+        if (oldFileName && oldFileName !== fileName) {
+          try { await deleteObject(ref(storage, 'gos-documents/' + oldFileName)); } catch (e) { console.warn('old file not deleted:', e); }
+        }
         showToast('Dokument aktualisiert');
       } else {
         data.createdAt = serverTimestamp();
@@ -1139,6 +1171,10 @@ function showPersonForm(person) {
 // ============================================
 // UTILITY
 // ============================================
+function displayFileName(name) {
+  return String(name || '').replace(/^\d{10,}_/, '');
+}
+
 function escHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
