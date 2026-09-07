@@ -82,7 +82,6 @@ onAuthStateChanged(auth, async (user) => {
         $('userDisplay').textContent = user.email;
         showScreen(dashboard);
         loadCurrentTab();
-        refreshRequestBadge();
       } else {
         currentAdmin = null;
         showScreen(accessDenied);
@@ -695,26 +694,10 @@ function uploadFile(file) {
   });
 }
 
-// Green badge on the Benutzer tab with the number of open requests (admins only)
-async function refreshRequestBadge() {
-  const tab = document.querySelector('.tab-btn[data-tab="users"]');
-  if (!tab) return;
-  let n = 0;
-  if (currentAdmin && currentAdmin.role === 'admin') {
-    try { n = (await getDocs(query(collection(db, 'gos-requests'), where('status', '==', 'pending')))).size; } catch { n = 0; }
-  }
-  let badge = tab.querySelector('.tab-badge');
-  if (!n) { if (badge) badge.remove(); return; }
-  if (!badge) { badge = document.createElement('span'); badge.className = 'tab-badge'; tab.appendChild(badge); }
-  badge.textContent = n;
-  badge.title = n + ' offene Anfrage' + (n === 1 ? '' : 'n');
-}
-
 // ============================================
 // USERS: admins (gos-admins, by UID) + members (gos-members, by e-mail)
 // ============================================
 let membersCache = [];
-let requestsCache = [];
 
 async function loadUsers() {
   const list = $('usersList');
@@ -728,14 +711,10 @@ async function loadUsers() {
   list.innerHTML = '<div class="items-loading"><div class="spinner"></div></div>';
 
   try {
-    const [admins, members, requests] = await Promise.all([
+    const [admins, members] = await Promise.all([
       getDocs(collection(db, 'gos-admins')),
-      getDocs(collection(db, 'gos-members')),
-      getDocs(query(collection(db, 'gos-requests'), where('status', '==', 'pending')))
+      getDocs(collection(db, 'gos-members'))
     ]);
-    refreshRequestBadge();
-    requestsCache = requests.docs.map(d => ({ uid: d.id, ...d.data() }))
-      .sort((a, b) => (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0));
     usersCache = admins.docs.map(d => ({ uid: d.id, ...d.data() }));
     membersCache = members.docs.map(d => ({ email: d.id, ...d.data() }))
       .sort((a, b) => (a.displayName || a.email).localeCompare(b.displayName || b.email, 'de'));
@@ -771,8 +750,8 @@ function renderUsersList() {
         <button class="btn-icon" data-action="promote-member" data-email="${escAttr(m.email)}" title="Zum Administrator machen">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>
         </button>
-        <button class="btn-icon" data-action="reset-member" data-email="${escAttr(m.email)}" title="Passwort-Link senden">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <button class="btn-icon" data-action="set-password" data-email="${escAttr(m.email)}" title="Passwort neu setzen">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
         </button>
         <button class="btn-icon btn-icon-danger" data-action="remove-member" data-email="${escAttr(m.email)}" title="Entfernen">${TRASH_SVG}</button>
       </div>`).join('');
@@ -791,28 +770,10 @@ function renderUsersList() {
       </div>`;
   }).join('');
 
-  const requestCards = requestsCache.length === 0
-    ? '<div class="items-empty">Keine offenen Anfragen.</div>'
-    : requestsCache.map(r => `
-      <div class="user-card" data-uid="${r.uid}">
-        <div class="user-avatar">${initialsOf(r.name || r.email)}</div>
-        <div class="user-info">
-          <h4>${escHtml(r.name || 'Unbenannt')}</h4>
-          <p>${escHtml(r.email)}${r.createdAt?.toDate ? ' · ' + r.createdAt.toDate().toLocaleDateString('de-CH') : ''}</p>
-        </div>
-        <button class="btn-primary btn-small" data-action="approve-request" data-uid="${r.uid}">Annehmen</button>
-        <button class="btn-secondary btn-small" data-action="deny-request" data-uid="${r.uid}">Ablehnen</button>
-      </div>`).join('');
-
   list.innerHTML = `
     <div class="users-group">
-      <h3>Anfragen${requestsCache.length ? ' (' + requestsCache.length + ')' : ''}</h3>
-      <p class="users-hint">Personen, die über die Website einen Mitgliederzugang beantragt haben. Beim Annehmen wird die E-Mail-Adresse als Mitglied freigeschaltet; die Person erhält in beiden Fällen eine E-Mail.</p>
-      ${requestCards}
-    </div>
-    <div class="users-group">
       <h3>Mitglieder</h3>
-      <p class="users-hint">Können sich auf der Website anmelden und sehen die Dokumente. Login mit E-Mail und Passwort oder mit einem Google-Konto derselben E-Mail-Adresse.</p>
+      <p class="users-hint">Können sich auf der Website anmelden und sehen die Dokumente. Login mit E-Mail und Passwort oder mit einem Google-Konto derselben E-Mail-Adresse. Schlüssel-Symbol: Passwort neu setzen.</p>
       ${memberCards}
     </div>
     <div class="users-group">
@@ -825,25 +786,6 @@ function renderUsersList() {
   list.onclick = async (e) => {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
-
-    if (btn.dataset.action === 'approve-request' || btn.dataset.action === 'deny-request') {
-      const uid = btn.dataset.uid;
-      const r = requestsCache.find(x => x.uid === uid);
-      const approve = btn.dataset.action === 'approve-request';
-      const confirmed = await confirmDialog(approve ? 'Anfrage annehmen' : 'Anfrage ablehnen',
-        `"${r?.name || r?.email}" ${approve ? 'als Mitglied freischalten' : 'ablehnen'}? Die Person wird per E-Mail informiert.`,
-        approve ? { confirmText: 'Annehmen', primary: true } : { confirmText: 'Ablehnen' });
-      if (!confirmed) return;
-      try {
-        if (approve) {
-          await setDoc(doc(db, 'gos-members', r.email), { email: r.email, displayName: r.name || '', createdAt: serverTimestamp(), addedBy: currentUser?.email || '', fromRequest: uid });
-        }
-        await updateDoc(doc(db, 'gos-requests', uid), { status: approve ? 'approved' : 'denied', decidedAt: serverTimestamp(), decidedBy: currentUser?.email || '' });
-        showToast(approve ? 'Mitglied freigeschaltet' : 'Anfrage abgelehnt');
-        loadUsers();
-      } catch (err) { showToast('Fehler: ' + err.message, 'error'); }
-      return;
-    }
 
     if (btn.dataset.action === 'remove-user') {
       const uid = btn.dataset.uid;
@@ -878,16 +820,46 @@ function renderUsersList() {
       return;
     }
 
-    if (btn.dataset.action === 'reset-member') {
+    if (btn.dataset.action === 'set-password') {
       const email = btn.dataset.email;
-      try { await sendPasswordResetEmail(auth, email); showToast('Passwort-Link an ' + email + ' gesendet'); }
-      catch (err) { showToast('Fehler: ' + err.message, 'error'); }
+      const m = membersCache.find(x => x.email === email);
+      showPasswordForm(email, m?.displayName || email);
     }
   };
 }
 
 $('btnAddUser').addEventListener('click', () => showUserForm());
 $('btnAddMember').addEventListener('click', () => showMemberForm());
+
+function showPasswordForm(email, label) {
+  openModal('Passwort neu setzen', `
+    <form id="pwSetForm">
+      <p style="margin-bottom:1rem; color:var(--color-text-light);">Neues Passwort für <strong>${escHtml(label)}</strong> (${escHtml(email)}).</p>
+      <div class="form-row">
+        <label for="ps-password">Neues Passwort (mind. 6 Zeichen)</label>
+        <input type="text" id="ps-password" minlength="6" autocomplete="off" value="synode_2026" required>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" onclick="document.getElementById('modal').style.display='none'">Abbrechen</button>
+        <button type="submit" class="btn-primary">Passwort setzen</button>
+      </div>
+    </form>
+    <p style="margin-top:1rem; font-size:0.82rem; color:var(--color-text-muted);">Das Passwort gilt sofort; bitte der Person mitteilen. Sie kann es danach auf der Website selbst ändern.</p>
+  `);
+  $('pwSetForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type=submit]');
+    btn.disabled = true;
+    try {
+      await httpsCallable(functions, 'setMemberPassword')({ email, password: $('ps-password').value });
+      showToast('Passwort gesetzt');
+      closeModal();
+    } catch (err) {
+      showToast('Fehler: ' + (err.message || err), 'error');
+      btn.disabled = false;
+    }
+  });
+}
 
 function showMemberForm() {
   openModal('Neues Mitglied', `

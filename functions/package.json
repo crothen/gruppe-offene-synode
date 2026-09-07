@@ -1,14 +1,13 @@
 {
   "name": "gos-functions",
   "private": true,
-  "description": "E-mail notifications for membership requests on the GOS website",
+  "description": "Admin helper functions for the GOS website",
   "main": "index.js",
   "engines": {
     "node": "22"
   },
   "dependencies": {
     "firebase-admin": "^13.0.0",
-    "firebase-functions": "^6.3.0",
-    "nodemailer": "^6.9.16"
+    "firebase-functions": "^6.3.0"
   }
 }
