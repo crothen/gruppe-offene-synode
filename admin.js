@@ -923,7 +923,7 @@ function showUserForm() {
 // ============================================
 // TEXTS (gos-content/sections)
 // ============================================
-const TEXT_FIELDS = ['who_text', 'who_quote', 'goals_text', 'goals_quote', 'how_text', 'how_quote', 'people_intro'];
+const TEXT_FIELDS = ['who_text', 'who_quote', 'goals_text', 'goals_quote', 'how_text', 'how_quote'];
 
 async function loadTexts() {
   try {

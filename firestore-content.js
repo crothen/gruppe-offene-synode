@@ -199,8 +199,6 @@ function renderSections(d) {
   setProse('#wie-wir-arbeiten', d.how_text);
   setQuote('#wie-wir-arbeiten', d.how_quote);
 
-  const intro = document.querySelector('#menschen .section-subtitle');
-  if (intro && d.people_intro) intro.textContent = d.people_intro;
 }
 
 async function loadSections() {
