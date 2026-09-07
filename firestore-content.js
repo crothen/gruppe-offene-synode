@@ -224,6 +224,7 @@ function renderPeople(people) {
       ${p.role ? `<p class="person-role">${esc(p.role)}</p>` : ''}
       ${p.text ? `<p>${esc(p.text)}</p>` : ''}
       ${p.email ? `<a class="person-mail" href="mailto:${esc(p.email)}">${esc(p.email)}</a>` : ''}
+      ${p.phone ? `<a class="person-mail person-phone" href="tel:${esc(String(p.phone).replace(/[^+d]/g, ''))}">${esc(p.phone)}</a>` : ''}
     </article>`).join('');
 }
 

@@ -434,6 +434,15 @@ a:hover {
   overflow-wrap: anywhere;
 }
 
+.person-phone {
+  margin-top: 0.35rem;
+}
+
+.person-mail,
+.person-phone {
+  display: block;
+}
+
 .person-mail:hover {
   text-decoration: underline;
 }

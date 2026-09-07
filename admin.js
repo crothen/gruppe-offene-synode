@@ -1056,6 +1056,7 @@ function renderPeopleList() {
         <div class="item-info-meta">
           <span>${escHtml(p.role || '')}</span>
           ${p.email ? `<span>· ${escHtml(p.email)}</span>` : ''}
+          ${p.phone ? `<span>· ${escHtml(p.phone)}</span>` : ''}
         </div>
       </div>
       <div class="item-actions">
@@ -1113,6 +1114,10 @@ function showPersonForm(person) {
         <input type="email" id="pf-email" value="${escAttr(person?.email || '')}">
       </div>
       <div class="form-row">
+        <label for="pf-phone">Telefon</label>
+        <input type="tel" id="pf-phone" placeholder="z.B. 031 123 45 67" value="${escAttr(person?.phone || '')}">
+      </div>
+      <div class="form-row">
         <label for="pf-text">Kurztext</label>
         <textarea id="pf-text" rows="3">${escHtml(person?.text || '')}</textarea>
       </div>
@@ -1137,6 +1142,7 @@ function showPersonForm(person) {
       name: $('pf-name').value.trim(),
       role: $('pf-role').value.trim(),
       email: $('pf-email').value.trim(),
+      phone: $('pf-phone').value.trim(),
       text: $('pf-text').value.trim(),
       order: parseInt($('pf-order').value) || 0,
       visible: $('pf-visible').checked
