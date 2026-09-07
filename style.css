@@ -126,66 +126,11 @@ a:hover {
 }
 
 /* Language switcher (inside nav) */
-.nav-lang {
-  display: flex;
-  align-items: center;
-  margin-left: 0.5rem;
-}
-
-.lang-switcher {
-  display: flex;
-  gap: 0;
-  background: var(--color-sand);
-  border: 1px solid var(--color-border);
-  border-radius: 50px;
-  padding: 3px;
-  position: relative;
-}
-
-.lang-pill {
-  position: absolute;
-  top: 3px;
-  left: 0;
-  height: calc(100% - 6px);
-  border-radius: 50px;
-  background: var(--color-forest);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.15, 1), width 0.3s cubic-bezier(0.4, 0, 0.15, 1);
-  z-index: 0;
-  pointer-events: none;
-}
-
-.lang-btn {
-  font-family: var(--font-sans);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  padding: 0.35rem 0.85rem;
-  border: none;
-  border-radius: 50px;
-  background: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: color 0.3s var(--ease);
-  position: relative;
-  z-index: 1;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  line-height: 1;
-}
-
-.lang-btn:hover {
-  color: var(--color-forest);
-}
-
-.lang-btn.active {
-  color: var(--color-white);
-}
 
 .nav-links {
   display: flex;
   list-style: none;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .nav-links a {
@@ -417,6 +362,191 @@ a:hover {
   color: var(--color-text-light);
   font-size: 0.95rem;
   line-height: 1.7;
+}
+
+/* --- Wer wir sind / Was wir wollen / Wie wir arbeiten --- */
+.section-who {
+  background: var(--color-cream);
+}
+
+.prose {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.prose p {
+  color: var(--color-text-light);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  margin-bottom: 1.25rem;
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+.section-goals {
+  background: var(--color-white);
+}
+
+.goal-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem 2.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.goal-item {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.5rem;
+  background: var(--color-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+
+.goal-check {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-forest);
+  color: #fff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.15rem;
+}
+
+.goal-item h3 {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-forest-dark);
+  margin-bottom: 0.35rem;
+}
+
+.goal-item p {
+  color: var(--color-text-light);
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.section-how {
+  background: var(--color-sand);
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.step-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 2.25rem 2rem;
+  position: relative;
+}
+
+.step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(90, 114, 71, 0.12);
+  color: var(--color-forest);
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+}
+
+.step-card h3 {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-forest-dark);
+  margin-bottom: 0.75rem;
+}
+
+.step-card p {
+  color: var(--color-text-light);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.section-people {
+  background: var(--color-white);
+}
+
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.75rem;
+}
+
+.person-card {
+  background: var(--color-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.person-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  background: var(--color-forest);
+  color: #fff;
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.person-card h3 {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-forest-dark);
+  margin-bottom: 0.25rem;
+}
+
+.person-role {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-olive);
+  margin-bottom: 0.75rem;
+}
+
+.person-card p {
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 1080px) {
+  .nav-links {
+    gap: 1rem;
+  }
+  .nav-links a {
+    font-size: 0.88rem;
+  }
+  .people-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* --- Sessions / Timeline Section --- */
@@ -957,19 +1087,18 @@ a:hover {
 
 /* --- Responsive --- */
 @media (max-width: 768px) {
+  .goal-list,
+  .steps-grid,
+  .people-grid {
+    grid-template-columns: 1fr;
+  }
+
   :root {
     --section-pad: 4rem;
   }
 
   .nav-toggle {
     display: flex;
-  }
-
-  .nav-lang {
-    margin-left: 0;
-    padding: 0.75rem 1.5rem;
-    border-top: 1px solid var(--color-border);
-    margin-top: 0.5rem;
   }
 
   .nav-links {
@@ -1114,6 +1243,9 @@ a:hover {
 /* --- Animations --- */
 @media (prefers-reduced-motion: no-preference) {
   .about-card,
+  .goal-item,
+  .step-card,
+  .person-card,
   .timeline-item,
   .doc-card,
   .contact-form-wrapper,
@@ -1124,6 +1256,9 @@ a:hover {
   }
 
   .about-card.visible,
+  .goal-item.visible,
+  .step-card.visible,
+  .person-card.visible,
   .timeline-item.visible,
   .doc-card.visible,
   .contact-form-wrapper.visible,
@@ -1134,6 +1269,9 @@ a:hover {
 
   .about-card:nth-child(2) { transition-delay: 0.1s; }
   .about-card:nth-child(3) { transition-delay: 0.2s; }
+  .step-card:nth-child(2), .person-card:nth-child(2) { transition-delay: 0.1s; }
+  .step-card:nth-child(3), .person-card:nth-child(3) { transition-delay: 0.2s; }
+  .person-card:nth-child(4) { transition-delay: 0.3s; }
   .timeline-item:nth-child(2) { transition-delay: 0.15s; }
   .timeline-item:nth-child(3) { transition-delay: 0.3s; }
 }

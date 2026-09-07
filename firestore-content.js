@@ -2,8 +2,7 @@
    Gruppe Offene Synode — Dynamic Firestore Content
    ============================================
    Loads events and documents from Firestore and
-   renders them into the public site. Handles i18n
-   re-rendering on language switch.
+   renders them into the public site.
    ============================================ */
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-app.js';
@@ -20,17 +19,8 @@ let eventsData = [];
 let documentsData = [];
 
 // --- Helpers ---
-function getLang() {
-  // Use I18N if available, fall back to document lang attribute
-  if (typeof I18N !== 'undefined' && I18N.getLang) {
-    return I18N.getLang();
-  }
-  return document.documentElement.lang || 'de';
-}
-
 function localizedField(doc, field) {
-  const lang = getLang();
-  return doc[field + '_' + lang] || doc[field + '_de'] || '';
+  return doc[field + '_de'] || '';
 }
 
 // --- SVG Icons (reused from original HTML) ---
@@ -137,10 +127,7 @@ function showLoading(container) {
 
 function showError(container) {
   if (!container) return;
-  const lang = getLang();
-  const msg = lang === 'fr'
-    ? 'Le contenu n\'est pas disponible pour le moment.'
-    : 'Inhalte sind derzeit nicht verfügbar.';
+  const msg = 'Inhalte sind derzeit nicht verfügbar.';
   container.innerHTML = `<p class="content-error">${msg}</p>`;
 }
 
@@ -187,12 +174,4 @@ async function loadDocuments() {
 (async function init() {
   // Load content from Firestore
   await Promise.all([loadEvents(), loadDocuments()]);
-
-  // Re-render on language change
-  if (typeof I18N !== 'undefined' && I18N.onChange) {
-    I18N.onChange(function () {
-      renderEvents();
-      renderDocuments();
-    });
-  }
 })();

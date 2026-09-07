@@ -360,29 +360,17 @@ function showEventForm(event) {
         </div>
       </div>
       <div class="form-row">
-        <label for="ef-title_de">Titel (DE)</label>
+        <label for="ef-title_de">Titel</label>
         <input type="text" id="ef-title_de" value="${escAttr(event?.title_de || '')}" required>
       </div>
       <div class="form-row">
-        <label for="ef-title_fr">Titel (FR)</label>
-        <input type="text" id="ef-title_fr" value="${escAttr(event?.title_fr || '')}">
-      </div>
-      <div class="form-row">
-        <label for="ef-description_de">Beschreibung (DE)</label>
+        <label for="ef-description_de">Beschreibung</label>
         <textarea id="ef-description_de" rows="3">${escHtml(event?.description_de || '')}</textarea>
-      </div>
-      <div class="form-row">
-        <label for="ef-description_fr">Beschreibung (FR)</label>
-        <textarea id="ef-description_fr" rows="3">${escHtml(event?.description_fr || '')}</textarea>
       </div>
       <div class="form-row-half">
         <div class="form-row">
-          <label for="ef-month_de">Monat (DE)</label>
+          <label for="ef-month_de">Monat</label>
           <input type="text" id="ef-month_de" placeholder="z.B. März 2026" value="${escAttr(event?.month_de || '')}">
-        </div>
-        <div class="form-row">
-          <label for="ef-month_fr">Monat (FR)</label>
-          <input type="text" id="ef-month_fr" placeholder="z.B. mars 2026" value="${escAttr(event?.month_fr || '')}">
         </div>
       </div>
       <div class="form-row-half">
@@ -415,11 +403,8 @@ function showEventForm(event) {
       category: $('ef-category').value,
       badgeClass: $('ef-badgeClass').value,
       title_de: $('ef-title_de').value.trim(),
-      title_fr: $('ef-title_fr').value.trim(),
       description_de: $('ef-description_de').value.trim(),
-      description_fr: $('ef-description_fr').value.trim(),
       month_de: $('ef-month_de').value.trim(),
-      month_fr: $('ef-month_fr').value.trim(),
       order: parseInt($('ef-order').value) || 0,
       visible: $('ef-visible').checked
     };
@@ -552,29 +537,17 @@ function showDocumentForm(document_) {
   openModal(title, `
     <form id="docForm">
       <div class="form-row">
-        <label for="df-title_de">Titel (DE)</label>
+        <label for="df-title_de">Titel</label>
         <input type="text" id="df-title_de" value="${escAttr(document_?.title_de || '')}" required>
       </div>
       <div class="form-row">
-        <label for="df-title_fr">Titel (FR)</label>
-        <input type="text" id="df-title_fr" value="${escAttr(document_?.title_fr || '')}">
-      </div>
-      <div class="form-row">
-        <label for="df-description_de">Beschreibung (DE)</label>
+        <label for="df-description_de">Beschreibung</label>
         <textarea id="df-description_de" rows="2">${escHtml(document_?.description_de || '')}</textarea>
-      </div>
-      <div class="form-row">
-        <label for="df-description_fr">Beschreibung (FR)</label>
-        <textarea id="df-description_fr" rows="2">${escHtml(document_?.description_fr || '')}</textarea>
       </div>
       <div class="form-row-half">
         <div class="form-row">
-          <label for="df-meta_de">Meta-Text (DE)</label>
+          <label for="df-meta_de">Meta-Text</label>
           <input type="text" id="df-meta_de" placeholder="z.B. PDF · Herunterladen" value="${escAttr(document_?.meta_de || 'PDF · Herunterladen')}">
-        </div>
-        <div class="form-row">
-          <label for="df-meta_fr">Meta-Text (FR)</label>
-          <input type="text" id="df-meta_fr" placeholder="z.B. PDF · Télécharger" value="${escAttr(document_?.meta_fr || 'PDF · Télécharger')}">
         </div>
       </div>
       <div class="form-row">
@@ -645,11 +618,8 @@ function showDocumentForm(document_) {
 
     const data = {
       title_de: $('df-title_de').value.trim(),
-      title_fr: $('df-title_fr').value.trim(),
       description_de: $('df-description_de').value.trim(),
-      description_fr: $('df-description_fr').value.trim(),
       meta_de: $('df-meta_de').value.trim(),
-      meta_fr: $('df-meta_fr').value.trim(),
       fileUrl,
       fileName,
       order: parseInt($('df-order').value) || 0,

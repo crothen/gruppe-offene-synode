@@ -88,7 +88,7 @@
 
   initObserver();
   // Observe static elements (about cards, contact cards, etc.)
-  observeElements('.about-card, .contact-form-wrapper, .contact-card');
+  observeElements('.about-card, .goal-item, .step-card, .person-card, .contact-form-wrapper, .contact-card');
   // Note: timeline-item and doc-card are now loaded dynamically — they'll be
   // observed after rendering by firestore-content.js via GOS.observeElements()
 
