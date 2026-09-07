@@ -75,6 +75,7 @@ onAuthStateChanged(auth, async (user) => {
         $('userDisplay').textContent = user.email;
         showScreen(dashboard);
         loadCurrentTab();
+        refreshRequestBadge();
       } else {
         currentAdmin = null;
         showScreen(accessDenied);
@@ -686,6 +687,21 @@ function uploadFile(file) {
   });
 }
 
+// Green badge on the Benutzer tab with the number of open requests (admins only)
+async function refreshRequestBadge() {
+  const tab = document.querySelector('.tab-btn[data-tab="users"]');
+  if (!tab) return;
+  let n = 0;
+  if (currentAdmin && currentAdmin.role === 'admin') {
+    try { n = (await getDocs(query(collection(db, 'gos-requests'), where('status', '==', 'pending')))).size; } catch { n = 0; }
+  }
+  let badge = tab.querySelector('.tab-badge');
+  if (!n) { if (badge) badge.remove(); return; }
+  if (!badge) { badge = document.createElement('span'); badge.className = 'tab-badge'; tab.appendChild(badge); }
+  badge.textContent = n;
+  badge.title = n + ' offene Anfrage' + (n === 1 ? '' : 'n');
+}
+
 // ============================================
 // USERS: admins (gos-admins, by UID) + members (gos-members, by e-mail)
 // ============================================
@@ -709,6 +725,7 @@ async function loadUsers() {
       getDocs(collection(db, 'gos-members')),
       getDocs(query(collection(db, 'gos-requests'), where('status', '==', 'pending')))
     ]);
+    refreshRequestBadge();
     requestsCache = requests.docs.map(d => ({ uid: d.id, ...d.data() }))
       .sort((a, b) => (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0));
     usersCache = admins.docs.map(d => ({ uid: d.id, ...d.data() }));

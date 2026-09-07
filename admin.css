@@ -1095,3 +1095,25 @@ body {
   padding: 0.4rem 0.9rem;
   font-size: 0.82rem;
 }
+
+/* --- open-request badge on the Benutzer tab --- */
+.tab-btn {
+  position: relative;
+}
+
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.4rem;
+  margin-left: 0.45rem;
+  border-radius: 999px;
+  background: #2e7d32;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: middle;
+}
