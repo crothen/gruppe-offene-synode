@@ -314,6 +314,13 @@ a:hover {
   line-height: 1.7;
 }
 
+.hero-creed {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.25rem;
+  color: var(--color-forest-dark);
+}
+
 /* --- Wer wir sind / Was wir wollen / Wie wir arbeiten --- */
 .section-who {
   background: var(--color-cream);
