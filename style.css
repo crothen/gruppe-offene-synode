@@ -622,6 +622,18 @@ a:hover {
   background: var(--color-sand);
 }
 
+.auth-error.is-ok {
+  color: var(--color-forest);
+}
+
+#authAccount .auth-form {
+  margin-top: 0.5rem;
+}
+
+.auth-form[hidden] {
+  display: none;
+}
+
 .auth-error {
   margin-top: 1rem;
   color: #a33a2a;

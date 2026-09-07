@@ -8,7 +8,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-app.js';
 import { getFirestore, collection, getDocs, getDoc, doc, query, where, orderBy }
   from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-firestore.js';
-import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, sendPasswordResetEmail, signOut }
+import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword }
   from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-auth.js';
 import { firebaseConfig } from './firebase-config.js';
 
@@ -249,16 +249,20 @@ const AUTH_ERRORS = {
   'auth/too-many-requests': 'Zu viele Versuche. Bitte später noch einmal probieren.',
   'auth/popup-closed-by-user': 'Anmeldung abgebrochen.',
   'auth/missing-password': 'Bitte das Passwort eingeben.',
+  'auth/weak-password': 'Das neue Passwort ist zu kurz (mindestens 6 Zeichen).',
+  'auth/requires-recent-login': 'Bitte melden Sie sich neu an und versuchen Sie es dann noch einmal.',
+  'pw/mismatch': 'Die beiden neuen Passwörter stimmen nicht überein.',
 };
 let documentsLoaded = false;
 
 function showAuthError(err) {
   const el = $('authError');
-  el.textContent = err ? (AUTH_ERRORS[err.code] || 'Anmeldung fehlgeschlagen: ' + (err.message || err)) : '';
+  el.classList.toggle('is-ok', !!(err && err.ok));
+  el.textContent = err ? (err.ok ? err.message : (AUTH_ERRORS[err.code] || 'Fehler: ' + (err.message || err))) : '';
   el.hidden = !err;
 }
 
-function openAuthModal() { $('authModal').hidden = false; showAuthError(null); ($('authSignedOut').hidden ? null : $('authEmail')).focus?.(); }
+function openAuthModal() { $('authModal').hidden = false; showAuthError(null); if (!$('authSignedOut').hidden) $('authEmail').focus(); }
 function closeAuthModal() { $('authModal').hidden = true; }
 
 async function isMemberUser(user) {
@@ -272,10 +276,17 @@ async function isMemberUser(user) {
 function applyMemberState(user, isMember) {
   $('navDocs').hidden = !isMember;
   $('dokumente').hidden = !isMember;
-  $('navAuth').textContent = user ? 'Abmelden' : 'Anmelden';
+  $('navAuth').textContent = user ? (isMember ? 'Konto' : 'Abmelden') : 'Anmelden';
   $('navAuth').title = user ? 'Angemeldet als ' + (user.email || '') : '';
   $('authSignedOut').hidden = !!user;
   $('authNotMember').hidden = !(user && !isMember);
+  $('authAccount').hidden = !(user && isMember);
+  if (user && isMember) {
+    $('authAccountEmail').textContent = user.email || '';
+    const hasPassword = (user.providerData || []).some((p) => p.providerId === 'password');
+    $('pwForm').hidden = !hasPassword;
+    $('pwGoogleOnly').hidden = hasPassword;
+  }
   if (user && !isMember) { $('authNotMemberEmail').textContent = user.email || ''; }
   if (isMember && !documentsLoaded) { documentsLoaded = true; loadDocuments(); }
   if (!isMember) documentsLoaded = false;
@@ -285,7 +296,7 @@ function initAuthUi() {
   if (!$('authModal')) return;
   $('navAuth').addEventListener('click', async (e) => {
     e.preventDefault();
-    if (auth.currentUser) { await signOut(auth); closeAuthModal(); }
+    if (auth.currentUser && $('authAccount').hidden) { await signOut(auth); closeAuthModal(); }
     else openAuthModal();
   });
   $('authClose').addEventListener('click', closeAuthModal);
@@ -300,14 +311,28 @@ function initAuthUi() {
   $('authReset').addEventListener('click', async () => {
     const email = $('authEmail').value.trim();
     if (!email) { showAuthError({ code: 'auth/invalid-email' }); $('authEmail').focus(); return; }
-    try { await sendPasswordResetEmail(auth, email); showAuthError({ message: 'E-Mail zum Zurücksetzen wurde an ' + email + ' geschickt.' }); $('authError').style.color = 'var(--color-forest)'; }
-    catch (err) { $('authError').style.color = ''; showAuthError(err); }
+    try { await sendPasswordResetEmail(auth, email); showAuthError({ ok: true, message: 'E-Mail zum Zurücksetzen wurde an ' + email + ' geschickt.' }); }
+    catch (err) { showAuthError(err); }
   });
   $('authGoogle').addEventListener('click', async () => {
     showAuthError(null);
     try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch (err) { showAuthError(err); }
   });
   $('authSignOut2').addEventListener('click', () => signOut(auth));
+  $('authSignOut').addEventListener('click', async () => { await signOut(auth); closeAuthModal(); });
+  $('pwForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    showAuthError(null);
+    const user = auth.currentUser;
+    const current = $('pwCurrent').value, next = $('pwNew').value, repeat = $('pwRepeat').value;
+    if (next !== repeat) return showAuthError({ code: 'pw/mismatch' });
+    try {
+      await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, current));
+      await updatePassword(user, next);
+      $('pwForm').reset();
+      showAuthError({ ok: true, message: 'Ihr Passwort wurde geändert.' });
+    } catch (err) { showAuthError(err); }
+  });
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) { applyMemberState(null, false); return; }
