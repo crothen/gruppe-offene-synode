@@ -35,8 +35,12 @@ async function sendMail(to, subject, text) {
 exports.onMemberRequestCreated = onDocumentCreated('gos-requests/{uid}', async (event) => {
   const d = event.data?.data();
   if (!d) return;
-  const admins = await getFirestore().collection('gos-admins').where('role', '==', 'admin').get();
-  const to = [...new Set(admins.docs.map((x) => x.data().email).filter(Boolean))];
+  // Recipients: NOTIFY_TO from .env (comma-separated) or, if unset, every admin with role 'admin'
+  let to = (process.env.NOTIFY_TO || '').split(',').map((s) => s.trim()).filter(Boolean);
+  if (!to.length) {
+    const admins = await getFirestore().collection('gos-admins').where('role', '==', 'admin').get();
+    to = [...new Set(admins.docs.map((x) => x.data().email).filter(Boolean))];
+  }
   if (!to.length) { logger.warn('no admin e-mail addresses found'); return; }
   await sendMail(
     to,
