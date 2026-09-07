@@ -323,9 +323,9 @@ a:hover {
 }
 
 .hero-creed-source {
-  margin: -0.5rem 0 2rem;
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
+  margin: -0.25rem 0 2rem;
+  font-size: 1rem;
+  color: var(--color-text-light);
 }
 
 /* --- Wer wir sind / Was wir wollen / Wie wir arbeiten --- */
