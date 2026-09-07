@@ -9,6 +9,8 @@
   "hosting": {
     "public": ".",
     "ignore": [
+      ".github/**",
+      ".git/**",
       "firebase.json",
       ".firebase/**",
       "seed-data.js",
@@ -17,7 +19,11 @@
       "firestore.indexes.json",
       "**/*.md",
       ".gitignore",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "functions/**",
+      ".firebaserc",
+      "package.json",
+      "package-lock.json"
     ],
     "headers": [
       {
@@ -59,6 +65,16 @@
           }
         ]
       }
+    ]
+  },
+  "functions": {
+    "source": "functions",
+    "codebase": "default",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "*.log",
+      ".env*"
     ]
   }
 }

@@ -1090,3 +1090,8 @@ body {
 .texts-form textarea {
   line-height: 1.6;
 }
+
+.btn-small {
+  padding: 0.4rem 0.9rem;
+  font-size: 0.82rem;
+}

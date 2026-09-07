@@ -688,6 +688,7 @@ function uploadFile(file) {
 // USERS: admins (gos-admins, by UID) + members (gos-members, by e-mail)
 // ============================================
 let membersCache = [];
+let requestsCache = [];
 
 async function loadUsers() {
   const list = $('usersList');
@@ -701,10 +702,13 @@ async function loadUsers() {
   list.innerHTML = '<div class="items-loading"><div class="spinner"></div></div>';
 
   try {
-    const [admins, members] = await Promise.all([
+    const [admins, members, requests] = await Promise.all([
       getDocs(collection(db, 'gos-admins')),
-      getDocs(collection(db, 'gos-members'))
+      getDocs(collection(db, 'gos-members')),
+      getDocs(query(collection(db, 'gos-requests'), where('status', '==', 'pending')))
     ]);
+    requestsCache = requests.docs.map(d => ({ uid: d.id, ...d.data() }))
+      .sort((a, b) => (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0));
     usersCache = admins.docs.map(d => ({ uid: d.id, ...d.data() }));
     membersCache = members.docs.map(d => ({ email: d.id, ...d.data() }))
       .sort((a, b) => (a.displayName || a.email).localeCompare(b.displayName || b.email, 'de'));
@@ -757,7 +761,25 @@ function renderUsersList() {
       </div>`;
   }).join('');
 
+  const requestCards = requestsCache.length === 0
+    ? '<div class="items-empty">Keine offenen Anfragen.</div>'
+    : requestsCache.map(r => `
+      <div class="user-card" data-uid="${r.uid}">
+        <div class="user-avatar">${initialsOf(r.name || r.email)}</div>
+        <div class="user-info">
+          <h4>${escHtml(r.name || 'Unbenannt')}</h4>
+          <p>${escHtml(r.email)}${r.createdAt?.toDate ? ' · ' + r.createdAt.toDate().toLocaleDateString('de-CH') : ''}</p>
+        </div>
+        <button class="btn-primary btn-small" data-action="approve-request" data-uid="${r.uid}">Annehmen</button>
+        <button class="btn-secondary btn-small" data-action="deny-request" data-uid="${r.uid}">Ablehnen</button>
+      </div>`).join('');
+
   list.innerHTML = `
+    <div class="users-group">
+      <h3>Anfragen${requestsCache.length ? ' (' + requestsCache.length + ')' : ''}</h3>
+      <p class="users-hint">Personen, die über die Website einen Mitgliederzugang beantragt haben. Beim Annehmen wird die E-Mail-Adresse als Mitglied freigeschaltet; die Person erhält in beiden Fällen eine E-Mail.</p>
+      ${requestCards}
+    </div>
     <div class="users-group">
       <h3>Mitglieder</h3>
       <p class="users-hint">Können sich auf der Website anmelden und sehen die Dokumente. Login mit E-Mail und Passwort oder mit einem Google-Konto derselben E-Mail-Adresse.</p>
@@ -773,6 +795,24 @@ function renderUsersList() {
   list.onclick = async (e) => {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
+
+    if (btn.dataset.action === 'approve-request' || btn.dataset.action === 'deny-request') {
+      const uid = btn.dataset.uid;
+      const r = requestsCache.find(x => x.uid === uid);
+      const approve = btn.dataset.action === 'approve-request';
+      const confirmed = await confirmDialog(approve ? 'Anfrage annehmen' : 'Anfrage ablehnen',
+        `"${r?.name || r?.email}" ${approve ? 'als Mitglied freischalten' : 'ablehnen'}? Die Person wird per E-Mail informiert.`);
+      if (!confirmed) return;
+      try {
+        if (approve) {
+          await setDoc(doc(db, 'gos-members', r.email), { email: r.email, displayName: r.name || '', createdAt: serverTimestamp(), addedBy: currentUser?.email || '', fromRequest: uid });
+        }
+        await updateDoc(doc(db, 'gos-requests', uid), { status: approve ? 'approved' : 'denied', decidedAt: serverTimestamp(), decidedBy: currentUser?.email || '' });
+        showToast(approve ? 'Mitglied freigeschaltet' : 'Anfrage abgelehnt');
+        loadUsers();
+      } catch (err) { showToast('Fehler: ' + err.message, 'error'); }
+      return;
+    }
 
     if (btn.dataset.action === 'remove-user') {
       const uid = btn.dataset.uid;

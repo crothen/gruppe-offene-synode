@@ -6,9 +6,9 @@
    ============================================ */
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-app.js';
-import { getFirestore, collection, getDocs, getDoc, doc, query, where, orderBy }
+import { getFirestore, collection, getDocs, getDoc, doc, setDoc, serverTimestamp, query, where, orderBy }
   from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-firestore.js';
-import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword }
+import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword, createUserWithEmailAndPassword, updateProfile }
   from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-auth.js';
 import { firebaseConfig } from './firebase-config.js';
 
@@ -252,6 +252,7 @@ const AUTH_ERRORS = {
   'auth/weak-password': 'Das neue Passwort ist zu kurz (mindestens 6 Zeichen).',
   'auth/requires-recent-login': 'Bitte melden Sie sich neu an und versuchen Sie es dann noch einmal.',
   'pw/mismatch': 'Die beiden neuen Passwörter stimmen nicht überein.',
+  'auth/email-already-in-use': 'Zu dieser E-Mail-Adresse gibt es bereits ein Konto. Bitte melden Sie sich an (oder nutzen Sie «Passwort vergessen?»).',
 };
 let documentsLoaded = false;
 
@@ -273,21 +274,50 @@ async function isMemberUser(user) {
   return results.some((s) => s && s.exists());
 }
 
+const VIEWS = ['authSignedOut', 'authAccount', 'authNotMember', 'authRequest', 'authRequested'];
+let requesting = false;   // suppresses the "not a member" view while a request is being created
+function showView(name) {
+  VIEWS.forEach((v) => { $(v).hidden = v !== name; });
+  $('authFooterHint').hidden = name === 'authRequest' || name === 'authRequested';
+}
+
+async function createRequest(user, name) {
+  const email = (user.email || '').toLowerCase();
+  await setDoc(doc(db, 'gos-requests', user.uid), { name, email, status: 'pending', createdAt: serverTimestamp() });
+}
+
+async function showNotMember(user) {
+  let req = null;
+  try { const s = await getDoc(doc(db, 'gos-requests', user.uid)); if (s.exists()) req = s.data(); } catch { /* no access = no request */ }
+  const who = '<strong>' + esc(user.email || '') + '</strong>';
+  const t = $('authNotMemberText');
+  if (req && req.status === 'pending') {
+    t.innerHTML = 'Ihre Anfrage für ' + who + ' ist eingegangen und wird geprüft. Sie erhalten eine E-Mail, sobald der Zugang freigeschaltet ist.';
+    $('reqExisting').hidden = true;
+  } else if (req && req.status === 'denied') {
+    t.innerHTML = 'Die Anfrage für ' + who + ' wurde leider nicht freigeschaltet. Bei Fragen melden Sie sich über das Kontaktformular.';
+    $('reqExisting').hidden = true;
+  } else {
+    t.innerHTML = 'Sie sind angemeldet als ' + who + ', dieses Konto ist aber noch nicht als Mitglied freigeschaltet.';
+    $('reqExisting').hidden = false;
+  }
+  showView('authNotMember');
+}
+
 function applyMemberState(user, isMember) {
   $('navDocs').hidden = !isMember;
   $('dokumente').hidden = !isMember;
   $('navAuth').textContent = user ? (isMember ? 'Konto' : 'Abmelden') : 'Anmelden';
   $('navAuth').title = user ? 'Angemeldet als ' + (user.email || '') : '';
-  $('authSignedOut').hidden = !!user;
-  $('authNotMember').hidden = !(user && !isMember);
-  $('authAccount').hidden = !(user && isMember);
+  if (!user) showView('authSignedOut');
+  else if (!isMember) { if (!requesting) showNotMember(user); }
+  else showView('authAccount');
   if (user && isMember) {
     $('authAccountEmail').textContent = user.email || '';
     const hasPassword = (user.providerData || []).some((p) => p.providerId === 'password');
     $('pwForm').hidden = !hasPassword;
     $('pwGoogleOnly').hidden = hasPassword;
   }
-  if (user && !isMember) { $('authNotMemberEmail').textContent = user.email || ''; }
   if (isMember && !documentsLoaded) { documentsLoaded = true; loadDocuments(); }
   if (!isMember) documentsLoaded = false;
 }
@@ -319,6 +349,34 @@ function initAuthUi() {
     try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch (err) { showAuthError(err); }
   });
   $('authSignOut2').addEventListener('click', () => signOut(auth));
+  $('authSignOut3').addEventListener('click', async () => { await signOut(auth); closeAuthModal(); });
+  $('reqOpen').addEventListener('click', () => { showAuthError(null); showView('authRequest'); $('reqName').focus(); });
+  $('reqBack').addEventListener('click', () => { showAuthError(null); showView('authSignedOut'); });
+  $('reqForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    showAuthError(null);
+    const name = $('reqName').value.trim(), email = $('reqEmail').value.trim(), pw = $('reqPassword').value;
+    const btn = e.target.querySelector('button[type=submit]');
+    btn.disabled = true; requesting = true;
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, pw);
+      await updateProfile(cred.user, { displayName: name });
+      await createRequest(cred.user, name);
+      $('reqDoneEmail').textContent = email;
+      $('reqForm').reset();
+      showView('authRequested');
+    } catch (err) {
+      showAuthError(err);
+      if (auth.currentUser) { requesting = false; showNotMember(auth.currentUser); }
+    } finally { btn.disabled = false; requesting = false; }
+  });
+  $('reqExisting').addEventListener('click', async () => {
+    const user = auth.currentUser; if (!user) return;
+    const name = user.displayName || prompt('Ihr Name (für die Fraktionsleitung):', '') || '';
+    if (!name.trim()) return;
+    try { await createRequest(user, name.trim()); $('reqDoneEmail').textContent = user.email || ''; showView('authRequested'); }
+    catch (err) { showAuthError(err); }
+  });
   $('authSignOut').addEventListener('click', async () => { await signOut(auth); closeAuthModal(); });
   $('pwForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -339,7 +397,7 @@ function initAuthUi() {
     const member = await isMemberUser(user);
     applyMemberState(user, member);
     if (member) { closeAuthModal(); }
-    else { openAuthModal(); }
+    else if (!requesting) { openAuthModal(); }
   });
 }
 

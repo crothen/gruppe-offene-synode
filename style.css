@@ -585,6 +585,12 @@ a:hover {
   cursor: pointer;
 }
 
+.auth-link-strong {
+  color: var(--color-forest);
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
 .auth-divider {
   display: flex;
   align-items: center;

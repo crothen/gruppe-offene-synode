@@ -60,7 +60,7 @@
   }
   </script>
 
-  <link rel="stylesheet" href="style.css?v=10">
+  <link rel="stylesheet" href="style.css?v=11">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
@@ -307,6 +307,26 @@
           </svg>
           Mit Google anmelden
         </button>
+        <button type="button" class="auth-link auth-link-strong" id="reqOpen">Noch kein Konto? Mitgliederzugang beantragen</button>
+      </div>
+
+      <div id="authRequest" hidden>
+        <form class="auth-form" id="reqForm">
+          <label for="reqName">Name</label>
+          <input type="text" id="reqName" autocomplete="name" required>
+          <label for="reqEmail">E-Mail</label>
+          <input type="email" id="reqEmail" autocomplete="email" required>
+          <label for="reqPassword">Passwort (mind. 6 Zeichen)</label>
+          <input type="password" id="reqPassword" autocomplete="new-password" minlength="6" required>
+          <button type="submit" class="btn-auth">Zugang beantragen</button>
+        </form>
+        <p class="auth-hint" style="margin-top:0.75rem">Ein Mitglied der Fraktionsleitung prüft Ihre Anfrage. Sie erhalten eine E-Mail, sobald der Zugang freigeschaltet ist.</p>
+        <button type="button" class="auth-link" id="reqBack">Zurück zum Login</button>
+      </div>
+
+      <div id="authRequested" hidden>
+        <p class="auth-notice">Vielen Dank! Ihre Anfrage ist eingegangen. Sie erhalten eine E-Mail an <strong id="reqDoneEmail"></strong>, sobald sie geprüft wurde.</p>
+        <button type="button" class="auth-link" id="authSignOut3">Abmelden</button>
       </div>
 
       <div id="authAccount" hidden>
@@ -325,12 +345,13 @@
       </div>
 
       <div id="authNotMember" hidden>
-        <p class="auth-notice">Sie sind angemeldet als <strong id="authNotMemberEmail"></strong>, dieses Konto ist aber noch nicht als Mitglied freigeschaltet.</p>
-        <button type="button" class="btn-auth" id="authSignOut2">Abmelden</button>
+        <p class="auth-notice" id="authNotMemberText"></p>
+        <button type="button" class="btn-auth" id="reqExisting" hidden>Mitgliederzugang beantragen</button>
+        <button type="button" class="auth-link" id="authSignOut2">Abmelden</button>
       </div>
 
       <p class="auth-error" id="authError" hidden></p>
-      <p class="auth-hint">Noch kein Zugang? Melden Sie sich beim Fraktionspräsidenten, damit Ihre E-Mail-Adresse freigeschaltet wird.</p>
+      <p class="auth-hint" id="authFooterHint">Mitglieder der Gruppe Offene Synode können hier einen Zugang beantragen; Anfragen werden von der Fraktionsleitung geprüft.</p>
     </div>
   </div>
 
@@ -353,6 +374,6 @@
     </div>
   </footer>
   <script src="script.js?v=7"></script>
-  <script type="module" src="firestore-content.js?v=7"></script>
+  <script type="module" src="firestore-content.js?v=8"></script>
 </body>
 </html>
