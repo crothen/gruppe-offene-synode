@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>GOS Admin — Gruppe Offene Synode</title>
-  <link rel="stylesheet" href="admin.css?v=3">
+  <link rel="stylesheet" href="admin.css?v=4">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
@@ -74,6 +74,8 @@
       <nav class="admin-tabs">
         <button class="tab-btn active" data-tab="events" type="button">Termine</button>
         <button class="tab-btn" data-tab="documents" type="button">Dokumente</button>
+        <button class="tab-btn" data-tab="texts" type="button">Texte</button>
+        <button class="tab-btn" data-tab="people" type="button">Menschen</button>
         <button class="tab-btn" data-tab="users" type="button">Benutzer</button>
       </nav>
 
@@ -95,6 +97,62 @@
           <button id="btnAddDoc" class="btn-primary" type="button">+ Neues Dokument</button>
         </div>
         <div id="docsList" class="items-list">
+          <div class="items-loading"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- Texts Panel -->
+      <div id="panel-texts" class="admin-panel" style="display:none">
+        <div class="panel-header">
+          <h2>Texte</h2>
+          <button id="btnSaveTexts" class="btn-primary" type="button">Speichern</button>
+        </div>
+        <form id="textsForm" class="texts-form">
+          <h3>Wer wir sind</h3>
+          <div class="form-row">
+            <label for="tf-who_text">Text (ein Absatz pro Zeile)</label>
+            <textarea id="tf-who_text" rows="9"></textarea>
+          </div>
+          <div class="form-row">
+            <label for="tf-who_quote">Zitat unter dem Abschnitt (leer = kein Zitat)</label>
+            <input type="text" id="tf-who_quote">
+          </div>
+
+          <h3>Was wir wollen</h3>
+          <div class="form-row">
+            <label for="tf-goals_text">Text (ein Absatz pro Zeile)</label>
+            <textarea id="tf-goals_text" rows="7"></textarea>
+          </div>
+          <div class="form-row">
+            <label for="tf-goals_quote">Zitat unter dem Abschnitt</label>
+            <input type="text" id="tf-goals_quote">
+          </div>
+
+          <h3>Wie wir arbeiten</h3>
+          <div class="form-row">
+            <label for="tf-how_text">Text (ein Absatz pro Zeile)</label>
+            <textarea id="tf-how_text" rows="7"></textarea>
+          </div>
+          <div class="form-row">
+            <label for="tf-how_quote">Zitat unter dem Abschnitt</label>
+            <input type="text" id="tf-how_quote">
+          </div>
+
+          <h3>Menschen</h3>
+          <div class="form-row">
+            <label for="tf-people_intro">Einleitungssatz</label>
+            <input type="text" id="tf-people_intro">
+          </div>
+        </form>
+      </div>
+
+      <!-- People Panel -->
+      <div id="panel-people" class="admin-panel" style="display:none">
+        <div class="panel-header">
+          <h2>Menschen</h2>
+          <button id="btnAddPerson" class="btn-primary" type="button">+ Neue Person</button>
+        </div>
+        <div id="peopleList" class="items-list">
           <div class="items-loading"><div class="spinner"></div></div>
         </div>
       </div>
@@ -126,6 +184,6 @@
   <!-- Toast -->
   <div id="toast" class="toast"></div>
 
-  <script type="module" src="admin.js?v=2"></script>
+  <script type="module" src="admin.js?v=3"></script>
 </body>
 </html>

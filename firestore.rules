@@ -27,6 +27,16 @@ service cloud.firestore {
       allow write: if isAdminUser();
     }
 
+    // Section texts and people: public, admins edit
+    match /gos-content/{docId} {
+      allow read: if true;
+      allow write: if isAdminUser();
+    }
+    match /gos-people/{personId} {
+      allow read: if true;
+      allow write: if isAdminUser();
+    }
+
     // Documents: members only
     match /gos-documents/{docId} {
       allow read: if isMember();

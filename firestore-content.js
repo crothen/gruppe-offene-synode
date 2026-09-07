@@ -174,6 +174,71 @@ async function loadDocuments() {
 }
 
 // --- Initialize ---
+// --- Editable texts (gos-content/sections) and people (gos-people) -------
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const paragraphsOf = (s) => String(s || '').split(/\n/).map((t) => t.trim()).filter(Boolean);   // one paragraph per line, blank lines ignored
+const initialsOf = (name) => String(name || '?').split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+
+function setQuote(sectionSel, text) {
+  const q = document.querySelector(sectionSel + ' .creed');
+  if (!q) return;
+  q.hidden = !text;
+  if (text) q.textContent = text;
+}
+
+function setProse(sectionSel, text) {
+  const el = document.querySelector(sectionSel + ' .prose');
+  if (el && text) el.innerHTML = paragraphsOf(text).map((p) => `<p>${esc(p)}</p>`).join('');
+}
+
+function renderSections(d) {
+  setProse('#wer-wir-sind', d.who_text);
+  setQuote('#wer-wir-sind', d.who_quote);
+  setProse('#was-wir-wollen', d.goals_text);
+  setQuote('#was-wir-wollen', d.goals_quote);
+  setProse('#wie-wir-arbeiten', d.how_text);
+  setQuote('#wie-wir-arbeiten', d.how_quote);
+
+  const intro = document.querySelector('#menschen .section-subtitle');
+  if (intro && d.people_intro) intro.textContent = d.people_intro;
+}
+
+async function loadSections() {
+  try {
+    const snap = await getDoc(doc(db, 'gos-content', 'sections'));
+    if (snap.exists()) renderSections(snap.data());
+  } catch (err) {
+    console.error('Failed to load section texts:', err); // static HTML stays
+  }
+}
+
+function renderPeople(people) {
+  const grid = document.querySelector('#menschen .people-grid');
+  if (!grid) return;
+  if (people.length === 0) {
+    grid.innerHTML = '<p class="content-empty">Keine Einträge.</p>';
+    return;
+  }
+  grid.innerHTML = people.map((p) => `
+    <article class="person-card visible">
+      <div class="person-avatar" aria-hidden="true">${esc(initialsOf(p.name))}</div>
+      <h3>${esc(p.name)}</h3>
+      ${p.role ? `<p class="person-role">${esc(p.role)}</p>` : ''}
+      ${p.text ? `<p>${esc(p.text)}</p>` : ''}
+      ${p.email ? `<a class="person-mail" href="mailto:${esc(p.email)}">${esc(p.email)}</a>` : ''}
+    </article>`).join('');
+}
+
+async function loadPeople() {
+  try {
+    const q = query(collection(db, 'gos-people'), where('visible', '==', true), orderBy('order'));
+    const snapshot = await getDocs(q);
+    renderPeople(snapshot.docs.map((d) => d.data()));
+  } catch (err) {
+    console.error('Failed to load people:', err); // static HTML stays
+  }
+}
+
 // --- Mitglieder-Login ---------------------------------------------------
 // Documents are only for members: a signed-in user whose e-mail is listed in
 // "gos-members" (or who is an admin). Firestore rules enforce the same thing.
@@ -258,5 +323,5 @@ function initAuthUi() {
 // --- Initialize ---
 (async function init() {
   initAuthUi();
-  await loadEvents();   // documents load once a member is signed in
+  await Promise.all([loadEvents(), loadSections(), loadPeople()]);   // documents load once a member is signed in
 })();

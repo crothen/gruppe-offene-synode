@@ -161,6 +161,8 @@ function loadCurrentTab() {
     case 'events': loadEvents(); break;
     case 'documents': loadDocuments(); break;
     case 'users': loadUsers(); break;
+    case 'texts': loadTexts(); break;
+    case 'people': loadPeople(); break;
   }
 }
 
@@ -912,6 +914,160 @@ function showUserForm() {
       showToast('Administrator hinzugefügt');
       closeModal();
       loadUsers();
+    } catch (err) {
+      showToast('Fehler: ' + err.message, 'error');
+    }
+  });
+}
+
+// ============================================
+// TEXTS (gos-content/sections)
+// ============================================
+const TEXT_FIELDS = ['who_text', 'who_quote', 'goals_text', 'goals_quote', 'how_text', 'how_quote', 'people_intro'];
+
+async function loadTexts() {
+  try {
+    const snap = await getDoc(doc(db, 'gos-content', 'sections'));
+    const d = snap.exists() ? snap.data() : {};
+    TEXT_FIELDS.forEach(f => { $('tf-' + f).value = d[f] || ''; });
+  } catch (err) {
+    showToast('Fehler beim Laden der Texte: ' + err.message, 'error');
+  }
+}
+
+$('btnSaveTexts').addEventListener('click', async () => {
+  const data = { updatedAt: serverTimestamp(), updatedBy: currentUser?.email || '' };
+  TEXT_FIELDS.forEach(f => { data[f] = $('tf-' + f).value.trim(); });
+  try {
+    await setDoc(doc(db, 'gos-content', 'sections'), data, { merge: true });
+    showToast('Texte gespeichert');
+  } catch (err) {
+    showToast('Fehler: ' + err.message, 'error');
+  }
+});
+
+// ============================================
+// PEOPLE CRUD (gos-people)
+// ============================================
+let peopleCache = [];
+
+async function loadPeople() {
+  const list = $('peopleList');
+  list.innerHTML = '<div class="items-loading"><div class="spinner"></div></div>';
+  try {
+    const snapshot = await getDocs(query(collection(db, 'gos-people'), orderBy('order')));
+    peopleCache = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderPeopleList();
+  } catch (err) {
+    console.error('Load people error:', err);
+    list.innerHTML = '<div class="items-empty">Fehler beim Laden.</div>';
+  }
+}
+
+function renderPeopleList() {
+  const list = $('peopleList');
+  if (peopleCache.length === 0) {
+    list.innerHTML = '<div class="items-empty">Noch keine Personen erfasst.</div>';
+    return;
+  }
+  list.innerHTML = peopleCache.map(p => `
+    <div class="item-card" data-id="${p.id}">
+      <div class="item-order">${p.order || ''}</div>
+      <div class="item-info">
+        <h4>${escHtml(p.name || '')}</h4>
+        <div class="item-info-meta">
+          <span>${escHtml(p.role || '')}</span>
+          ${p.email ? `<span>· ${escHtml(p.email)}</span>` : ''}
+        </div>
+      </div>
+      <div class="item-actions">
+        <label class="visibility-toggle" title="${p.visible ? 'Sichtbar' : 'Versteckt'}">
+          <input type="checkbox" ${p.visible ? 'checked' : ''} data-action="toggle-person" data-id="${p.id}">
+          <span class="toggle-slider"></span>
+        </label>
+        <button class="btn-icon" data-action="edit-person" data-id="${p.id}" title="Bearbeiten">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </button>
+        <button class="btn-icon btn-icon-danger" data-action="delete-person" data-id="${p.id}" title="Löschen">${TRASH_SVG}</button>
+      </div>
+    </div>`).join('');
+
+  list.onclick = async (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const p = peopleCache.find(x => x.id === id);
+    if (btn.dataset.action === 'toggle-person') {
+      const visible = btn.checked;
+      try { await updateDoc(doc(db, 'gos-people', id), { visible }); if (p) p.visible = visible; showToast(visible ? 'Sichtbar' : 'Versteckt'); }
+      catch (err) { showToast('Fehler: ' + err.message, 'error'); btn.checked = !visible; }
+    } else if (btn.dataset.action === 'edit-person') {
+      if (p) showPersonForm(p);
+    } else if (btn.dataset.action === 'delete-person') {
+      if (await confirmDialog('Person löschen', `"${p?.name || ''}" wirklich löschen?`)) {
+        try { await deleteDoc(doc(db, 'gos-people', id)); showToast('Gelöscht'); loadPeople(); }
+        catch (err) { showToast('Fehler: ' + err.message, 'error'); }
+      }
+    }
+  };
+}
+
+$('btnAddPerson').addEventListener('click', () => showPersonForm(null));
+
+function showPersonForm(person) {
+  const isEdit = !!person;
+  const nextOrder = peopleCache.reduce((m, p) => Math.max(m, Number(p.order) || 0), 0) + 1;
+  openModal(isEdit ? 'Person bearbeiten' : 'Neue Person', `
+    <form id="personForm">
+      <div class="form-row">
+        <label for="pf-name">Name</label>
+        <input type="text" id="pf-name" value="${escAttr(person?.name || '')}" required>
+      </div>
+      <div class="form-row">
+        <label for="pf-role">Rolle / Funktion</label>
+        <input type="text" id="pf-role" placeholder="z.B. Fraktionspräsident, Synodale Region Jura" value="${escAttr(person?.role || '')}">
+      </div>
+      <div class="form-row">
+        <label for="pf-email">E-Mail</label>
+        <input type="email" id="pf-email" value="${escAttr(person?.email || '')}">
+      </div>
+      <div class="form-row">
+        <label for="pf-text">Kurztext</label>
+        <textarea id="pf-text" rows="3">${escHtml(person?.text || '')}</textarea>
+      </div>
+      <div class="form-row-half">
+        <div class="form-row">
+          <label for="pf-order">Reihenfolge</label>
+          <input type="number" id="pf-order" value="${person?.order ?? nextOrder}">
+        </div>
+        <div class="form-row">
+          <label class="checkbox-label"><input type="checkbox" id="pf-visible" ${person?.visible !== false ? 'checked' : ''}> Sichtbar</label>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" onclick="document.getElementById('modal').style.display='none'">Abbrechen</button>
+        <button type="submit" class="btn-primary">${isEdit ? 'Speichern' : 'Erstellen'}</button>
+      </div>
+    </form>`);
+
+  $('personForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = {
+      name: $('pf-name').value.trim(),
+      role: $('pf-role').value.trim(),
+      email: $('pf-email').value.trim(),
+      text: $('pf-text').value.trim(),
+      order: parseInt($('pf-order').value) || 0,
+      visible: $('pf-visible').checked
+    };
+    try {
+      if (isEdit) { await updateDoc(doc(db, 'gos-people', person.id), data); showToast('Person aktualisiert'); }
+      else { await addDoc(collection(db, 'gos-people'), data); showToast('Person erstellt'); }
+      closeModal();
+      loadPeople();
     } catch (err) {
       showToast('Fehler: ' + err.message, 'error');
     }
