@@ -205,7 +205,9 @@ function showToast(message, type = 'success') {
 // ============================================
 // CONFIRM DIALOG
 // ============================================
-function confirmDialog(title, message) {
+function confirmDialog(title, message, opts = {}) {
+  const confirmText = opts.confirmText || 'Löschen';
+  const confirmClass = opts.primary ? 'btn-primary' : 'btn-danger';
   return new Promise((resolve) => {
     const overlay = document.createElement('div');
     overlay.className = 'confirm-overlay';
@@ -215,7 +217,7 @@ function confirmDialog(title, message) {
         <p>${escHtml(message)}</p>
         <div class="confirm-actions">
           <button class="btn-secondary" data-action="cancel">Abbrechen</button>
-          <button class="btn-danger" data-action="confirm">Löschen</button>
+          <button class="${confirmClass}" data-action="confirm">${confirmText}</button>
         </div>
       </div>`;
 
@@ -801,7 +803,8 @@ function renderUsersList() {
       const r = requestsCache.find(x => x.uid === uid);
       const approve = btn.dataset.action === 'approve-request';
       const confirmed = await confirmDialog(approve ? 'Anfrage annehmen' : 'Anfrage ablehnen',
-        `"${r?.name || r?.email}" ${approve ? 'als Mitglied freischalten' : 'ablehnen'}? Die Person wird per E-Mail informiert.`);
+        `"${r?.name || r?.email}" ${approve ? 'als Mitglied freischalten' : 'ablehnen'}? Die Person wird per E-Mail informiert.`,
+        approve ? { confirmText: 'Annehmen', primary: true } : { confirmText: 'Ablehnen' });
       if (!confirmed) return;
       try {
         if (approve) {
@@ -817,7 +820,7 @@ function renderUsersList() {
     if (btn.dataset.action === 'remove-user') {
       const uid = btn.dataset.uid;
       const u = usersCache.find(x => x.uid === uid);
-      const confirmed = await confirmDialog('Administrator entfernen', `"${u?.displayName || u?.email || ''}" wirklich als Admin entfernen?`);
+      const confirmed = await confirmDialog('Administrator entfernen', `"${u?.displayName || u?.email || ''}" wirklich als Admin entfernen?`, { confirmText: 'Entfernen' });
       if (confirmed) {
         try { await deleteDoc(doc(db, 'gos-admins', uid)); showToast('Administrator entfernt'); loadUsers(); }
         catch (err) { showToast('Fehler: ' + err.message, 'error'); }
@@ -827,7 +830,7 @@ function renderUsersList() {
     if (btn.dataset.action === 'remove-member') {
       const email = btn.dataset.email;
       const m = membersCache.find(x => x.email === email);
-      const confirmed = await confirmDialog('Mitglied entfernen', `"${m?.displayName || email}" wirklich entfernen? Die Person sieht die Dokumente danach nicht mehr.`);
+      const confirmed = await confirmDialog('Mitglied entfernen', `"${m?.displayName || email}" wirklich entfernen? Die Person sieht die Dokumente danach nicht mehr.`, { confirmText: 'Entfernen' });
       if (confirmed) {
         try { await deleteDoc(doc(db, 'gos-members', email)); showToast('Mitglied entfernt'); loadUsers(); }
         catch (err) { showToast('Fehler: ' + err.message, 'error'); }
