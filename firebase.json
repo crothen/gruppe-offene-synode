@@ -14,7 +14,10 @@
       "seed-data.js",
       "migrate-firestore.mjs",
       "*.rules",
-      "firestore.indexes.json"
+      "firestore.indexes.json",
+      "**/*.md",
+      ".gitignore",
+      "**/node_modules/**"
     ],
     "headers": [
       {
