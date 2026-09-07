@@ -554,7 +554,7 @@ function showDocumentForm(document_) {
       <div class="form-row-half">
         <div class="form-row">
           <label for="df-meta_de">Meta-Text</label>
-          <input type="text" id="df-meta_de" placeholder="z.B. PDF · Herunterladen" value="${escAttr(document_?.meta_de || 'PDF · Herunterladen')}">
+          <input type="text" id="df-meta_de" placeholder="z.B. Herunterladen" value="${escAttr(document_?.meta_de || 'Herunterladen')}">
         </div>
       </div>
       <div class="form-row">
