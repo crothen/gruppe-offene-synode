@@ -12,8 +12,8 @@
   --color-sage-light:  #a8c496;
   --color-earth:       #8b7355;
   --color-warm:        #c9a96e;
-  --color-cream:       #fdf2f0;
-  --color-sand:        #f7e3df;
+  --color-cream:       #faf7f2;
+  --color-sand:        #f0ebe3;
   --color-white:       #ffffff;
   --color-text:        #2c2c2c;
   --color-text-light:  #5a5a5a;
@@ -84,7 +84,7 @@ a:hover {
   left: 0;
   right: 0;
   z-index: 1000;
-  background: rgba(253, 242, 240, 0.92);
+  background: rgba(250, 247, 242, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid transparent;
@@ -1244,7 +1244,7 @@ a:hover {
     top: 70px;
     left: 0;
     right: 0;
-    background: rgba(253, 242, 240, 0.98);
+    background: rgba(250, 247, 242, 0.98);
     backdrop-filter: blur(12px);
     flex-direction: column;
     gap: 0;
