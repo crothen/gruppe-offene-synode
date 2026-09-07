@@ -10,12 +10,14 @@ import { getFirestore, collection, getDocs, getDoc, doc, setDoc, serverTimestamp
   from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-firestore.js';
 import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword, createUserWithEmailAndPassword, updateProfile }
   from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-auth.js';
+import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-functions.js';
 import { firebaseConfig } from './firebase-config.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const functions = getFunctions(app, 'europe-west1');
 
 // --- State ---
 let eventsData = [];
@@ -396,6 +398,11 @@ function initAuthUi() {
   onAuthStateChanged(auth, async (user) => {
     if (!user) { applyMemberState(null, false); return; }
     const member = await isMemberUser(user);
+    if (member) {
+      // stamp the member flag onto the token so document files can be opened
+      try { const res = await httpsCallable(functions, 'refreshMyClaims')({}); if (res.data.changed) await user.getIdToken(true); }
+      catch (err) { console.warn('refreshMyClaims failed:', err); }
+    }
     applyMemberState(user, member);
     if (member) { closeAuthModal(); }
     else if (!requesting) { openAuthModal(); }

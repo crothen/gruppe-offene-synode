@@ -74,6 +74,11 @@ onAuthStateChanged(auth, async (user) => {
       const adminDoc = await getDoc(doc(db, 'gos-admins', user.uid));
       if (adminDoc.exists()) {
         currentAdmin = adminDoc.data();
+        // make sure the token carries the admin flag (needed for file uploads)
+        try {
+          const res = await httpsCallable(functions, 'refreshMyClaims')({});
+          if (res.data.changed) await user.getIdToken(true);
+        } catch (err) { console.warn('refreshMyClaims failed:', err); }
         $('userDisplay').textContent = user.email;
         showScreen(dashboard);
         loadCurrentTab();

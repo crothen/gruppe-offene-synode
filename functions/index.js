@@ -105,3 +105,21 @@ exports.promoteToAdmin = onCall({ cors: true }, async (req) => {
   logger.info('promoted', { email, role, by: req.auth.token.email });
   return { uid: user.uid, role, displayName };
 });
+
+// Stamp "admin" / "member" flags onto the caller's login token. Storage rules
+// check these flags, which avoids the Firestore lookup that needs an extra IAM role.
+// Called by the site and the admin portal right after sign-in.
+exports.refreshMyClaims = onCall({ cors: true }, async (req) => {
+  if (!req.auth) throw new HttpsError('unauthenticated', 'Bitte anmelden.');
+  const db = getFirestore();
+  const uid = req.auth.uid;
+  const email = String(req.auth.token.email || '').toLowerCase();
+  const adminDoc = await db.collection('gos-admins').doc(uid).get();
+  const memberDoc = email ? await db.collection('gos-members').doc(email).get() : null;
+  const claims = { admin: adminDoc.exists, member: adminDoc.exists || !!(memberDoc && memberDoc.exists) };
+  const user = await getAuth().getUser(uid);
+  const cur = user.customClaims || {};
+  const changed = cur.admin !== claims.admin || cur.member !== claims.member;
+  if (changed) await getAuth().setCustomUserClaims(uid, { ...cur, ...claims });
+  return { ...claims, changed };
+});
