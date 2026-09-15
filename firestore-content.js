@@ -114,7 +114,10 @@ function renderDocuments() {
 
   docsGrid.innerHTML = documentsData.map(function (doc) {
     const href = doc.fileUrl || '#';
-    const target = doc.fileUrl ? ' target="_blank" rel="noopener noreferrer"' : '';
+    // "download" asks the browser to save instead of open; the file itself is also
+    // served as an attachment (see uploadFile in admin.js), which is what makes
+    // this work for a cross-origin Storage URL.
+    const target = doc.fileUrl ? ' target="_blank" rel="noopener noreferrer" download' : '';
 
     return `
       <a href="${href}"${target} class="doc-card">

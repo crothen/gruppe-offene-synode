@@ -24,7 +24,7 @@ import {
   GoogleAuthProvider, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail
 } from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-auth.js';
 import {
-  getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject
+  getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject, getMetadata, updateMetadata
 } from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-storage.js';
 import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/11.3.0/firebase-functions.js';
 import { firebaseConfig } from './firebase-config.js';
@@ -451,6 +451,7 @@ async function loadDocuments() {
     const snapshot = await getDocs(q);
     docsCache = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     renderDocumentsList();
+    ensureDownloadable(docsCache);   // background, no await
   } catch (err) {
     console.error('Load documents error:', err);
     list.innerHTML = '<div class="items-empty">Fehler beim Laden der Dokumente.</div>';
@@ -691,6 +692,31 @@ function showDocumentForm(document_) {
   });
 }
 
+// Storage serves files "inline" by default, so browsers open PDFs instead of
+// saving them. An attachment disposition makes every browser download the file
+// under its original name.
+function attachmentDisposition(originalName) {
+  const ascii = originalName.replace(/[^ -~]/g, '_').replace(/"/g, '');
+  return `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(originalName)}`;
+}
+
+// Files uploaded before the disposition was set still stream; fix them lazily
+// whenever an admin opens the documents tab.
+async function ensureDownloadable(docs) {
+  for (const d of docs) {
+    if (!d.fileName) continue;
+    try {
+      const fileRef = ref(storage, 'gos-documents/' + d.fileName);
+      const meta = await getMetadata(fileRef);
+      if (String(meta.contentDisposition || '').startsWith('attachment')) continue;
+      await updateMetadata(fileRef, { contentDisposition: attachmentDisposition(displayFileName(d.fileName)) });
+      console.info('Download-Metadaten gesetzt:', d.fileName);
+    } catch (err) {
+      console.warn('Download-Metadaten nicht gesetzt:', d.fileName, err);
+    }
+  }
+}
+
 // File upload with progress
 function uploadFile(file) {
   return new Promise((resolve, reject) => {
@@ -700,7 +726,9 @@ function uploadFile(file) {
     const storageName = `${timestamp}_${safeName}`;
 
     const storageRef = ref(storage, 'gos-documents/' + storageName);
-    const uploadTask = uploadBytesResumable(storageRef, file);
+    const uploadTask = uploadBytesResumable(storageRef, file, {
+      contentDisposition: attachmentDisposition(file.name)
+    });
 
     const progressDiv = $('uploadProgress');
     const progressBar = $('uploadProgressBar');
